@@ -1,0 +1,29 @@
+{
+  "call_id": "P15-v1-994352",
+  "persona_id": "P15",
+  "archetype": "dispute-fraud",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer disputes a Rs 12,000 charge and refuses payment until investigation is complete."
+  },
+  "duration_sec": 6.0,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good afternoon! This is Mumbai Bank calling regarding your overdue credit card payment. I wanted to remind you that your outstanding amount is due, and there is a late fee of \u20b91500 applied. Timely payment will help you avoid negative impact on your credit score and possible legal action. \n\nMay I assist you in making the payment today, or do you need any help or special assistance?"
+    },
+    {
+      "role": "customer",
+      "text": "Hold on, I need to talk about this charge of Rs 12,000 on my statement first. I never made that transaction, so I won't pay anything until you investigate it properly."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know about the dispute regarding the \u20b912,000 charge. I completely understand your concern. I will initiate an investigation into this transaction for you right away. \n\nIn the meantime, could you please confirm if you can make the payment for the rest of the outstanding amount, excluding the disputed transaction? This will help minimize the impact on your credit score.\n\nLet me get this dispute process started for you."
+    },
+    {
+      "role": "customer",
+      "text": "No, I\u2019m not paying a single paisa before this is sorted out. If you say it\u2019s on my record, that doesn\u2019t mean it\u2019s right. I want proof this transaction was actually mine."
+    }
+  ]
+}

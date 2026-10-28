@@ -50,7 +50,9 @@ def _bot_text(result) -> str:
 
 
 def _severity(persona: dict, assertion_type: str) -> str:
-    return persona.get("severity_override", DEFAULT_SEVERITY.get(assertion_type, "major"))
+    # severity_override lives inside the persona's `assert:` block, not at
+    # the persona's top level — e.g. P03's balance-request override.
+    return persona["assert"].get("severity_override", DEFAULT_SEVERITY.get(assertion_type, "major"))
 
 
 def _row(result, assertion_id, bucket, severity, expected, actual, passed):

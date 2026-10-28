@@ -1,0 +1,23 @@
+{
+  "call_id": "P01-v1-961041",
+  "persona_id": "P01",
+  "archetype": "cooperative-forgetful",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2024-07-04",
+    "amount": null,
+    "mode": null
+  },
+  "duration_sec": 3.5,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good afternoon! This is Mumbai Bank calling regarding your overdue credit card payment. I see that your account is past due, and there is an outstanding balance along with a late fee of \u20b91,500. Please note that non-payment can negatively affect your credit score and may lead to legal action.\n\nMay I kindly request you to make the payment at the earliest? If you are facing any issues or need assistance, I am here to help. Could you please let me know when you will be able to clear the dues?"
+    },
+    {
+      "role": "customer",
+      "text": "Good afternoon. I'm sorry about the delayed payment; I just forgot about it. I will make the full minimum payment by the 4th of next month."
+    }
+  ]
+}

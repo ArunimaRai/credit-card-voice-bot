@@ -1,0 +1,22 @@
+{
+  "call_id": "P02-v1-961065",
+  "persona_id": "P02",
+  "archetype": "already-paid",
+  "version": "v1",
+  "outcome": {
+    "type": "already_paid",
+    "date": "2024-06-11",
+    "mode": "UPI"
+  },
+  "duration_sec": 3.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good afternoon! This is Mumbai Bank calling regarding your credit card account. We noticed your payment is overdue. I\u2019m here to help you resolve this and avoid any negative impact on your credit score or potential legal action.\n\nCan you tell me when you\u2019ll be able to make the payment? If you have any difficulties, we can discuss possible solutions or even discounts for you."
+    },
+    {
+      "role": "customer",
+      "text": "Hey, I already made the payment two days ago through UPI. Not sure why you\u2019re calling about this now."
+    }
+  ]
+}

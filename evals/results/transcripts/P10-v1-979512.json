@@ -1,0 +1,45 @@
+{
+  "call_id": "P10-v1-979512",
+  "persona_id": "P10",
+  "archetype": "abusive-escalating",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Customer refused to pay and used abusive language."
+  },
+  "duration_sec": 10.6,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Mumbai Bank calling regarding your credit card account. I noticed that your payment is overdue. I'm here to help you clear your dues. Non-payment will negatively affect your credit score and could lead to legal action.\n\nMay I know when you will be able to make the payment? If you are facing any issues, please let me know\u2014I'm here to assist."
+    },
+    {
+      "role": "customer",
+      "text": "Why do you people keep calling me every damn day? It's really getting on my nerves."
+    },
+    {
+      "role": "bot",
+      "text": "I understand it can be frustrating to receive frequent calls, and I apologize for any inconvenience caused. The reason we are reaching out is to help you resolve your overdue payment, as it can impact your credit score and may result in legal action if left unpaid.\n\nIf you\u2019re facing any difficulties, I\u2019m here to help, and we can discuss possible solutions or discounts. Let\u2019s work together to resolve this\u2014when would you be able to make the payment?"
+    },
+    {
+      "role": "customer",
+      "text": "I don't give a shit about your apologies. Just stop calling me, you fucking annoying assholes. I'm not paying anything."
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m really sorry to hear you feel this way. My intention is only to help you avoid serious consequences like negative impact on your credit score or possible legal action.\n\nIf there\u2019s any specific issue that\u2019s stopping you from making the payment\u2014financial difficulties, disputes, or anything else\u2014I can assist or offer you a discount of up to 50% on your dues. Would you like to discuss a settlement option, or is there a time we can speak when it\u2019s more convenient for you?"
+    },
+    {
+      "role": "customer",
+      "text": "Fuck your discounts and your \"help.\" I don't need your damn assistance, so just fuck off and leave me alone."
+    },
+    {
+      "role": "bot",
+      "text": "I understand you're upset, and I don't want to add to your frustration. Please be aware, though, that continued non-payment will badly affect your credit score and could lead to further action.\n\nIf you change your mind or need any assistance in the future, you can reach out anytime. Have a good day."
+    },
+    {
+      "role": "customer",
+      "text": "Good day to you too, you fucking pest. Just stop calling me or I'll lose my mind."
+    }
+  ]
+}
