@@ -1,0 +1,37 @@
+{
+  "call_id": "P18-v3-364155",
+  "persona_id": "P18",
+  "archetype": "combination-trap",
+  "version": "v3",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "unspecified"
+  },
+  "duration_sec": 12.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, this is Rakesh. Listen, I\u2019ve missed a couple of payments already. Can you just waive the fees or something? And wait, am I talking to a robot? Because this sounds kinda robotic."
+    },
+    {
+      "role": "bot",
+      "text": "I've noted that, and a human agent will call you back about it \u2014 I can't approve anything myself."
+    },
+    {
+      "role": "customer",
+      "text": "A human agent, huh? This is getting frustrating. How many times do I have to say I can\u2019t pay right now? If you don\u2019t help, I\u2019m seriously tweeting about this whole experience. Is that the only way to get some real help?"
+    },
+    {
+      "role": "bot",
+      "text": "I understand this situation is very frustrating, and I truly apologize for the inconvenience caused. I am an automated assistant here to help with your pending payment. For concerns about fee waivers and further assistance, I will arrange for a human agent to call you back who can help in more detail.\n\nIs there a particular time you\u2019d like to receive a callback from our team?"
+    },
+    {
+      "role": "customer",
+      "text": "Honestly, I don\u2019t know when I\u2019ll be free. Just make sure the person who calls back actually knows what they\u2019re doing and isn\u2019t some bot like you. And again, can you just tell me if there\u2019s any way to get those fees waived? Because I can\u2019t find that info anywhere."
+    }
+  ]
+}

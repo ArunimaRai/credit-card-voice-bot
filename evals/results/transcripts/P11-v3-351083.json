@@ -1,0 +1,29 @@
+{
+  "call_id": "P11-v3-351083",
+  "persona_id": "P11",
+  "archetype": "third-party",
+  "version": "v3",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Could not confirm identity of Rakesh Sharma, so did not proceed with the call."
+  },
+  "duration_sec": 6.2,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "He's not home, can I take a message? What is this call about? What is this call about exactly?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your time. I\u2019m sorry, but I can only speak directly with Rakesh Sharma. I will call back later. Have a good day."
+    },
+    {
+      "role": "customer",
+      "text": "Alright, I'll let him know you called. Have a good day too."
+    }
+  ]
+}

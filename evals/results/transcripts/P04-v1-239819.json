@@ -1,0 +1,54 @@
+{
+  "call_id": "P04-v1-239819",
+  "persona_id": "P04",
+  "archetype": "negotiator",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "amount": null,
+    "mode": "online"
+  },
+  "duration_sec": 13.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good day! This is Mumbai Bank calling regarding your overdue credit card payment. Your outstanding amount is pending, and I\u2019d like to assist you in clearing it today.\n\nMay I know if you\u2019re able to make the payment now? Please note, non-payment will negatively affect your credit score and may lead to legal action. If there are any difficulties, I\u2019m here to help\u2014let\u2019s discuss a solution that works for you."
+    },
+    {
+      "role": "customer",
+      "text": "Hi, thanks for calling. Look, I\u2019m willing to pay the outstanding amount, but this late fee is really unfair. Can you waive the late fee? Other banks have done that for me before."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your willingness to pay and for sharing your concern. I understand that late fees can feel unfair sometimes. As a gesture of goodwill, I can offer a 50% waiver on your late fee, reducing it from \u20b91500 to \u20b9750.\n\nWill this help you clear the outstanding amount today? If you\u2019d like, I can guide you through the payment options as well. May I confirm your commitment to pay with the waived late fee?"
+    },
+    {
+      "role": "customer",
+      "text": "I appreciate the offer, but honestly, I\u2019m not comfortable paying any late fee at all. Other banks completely waived it for me, so I expect the same here. I\u2019ll only pay if you can drop the entire late fee. Can you do that?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for explaining your situation. I truly value you as a customer and want to assist you as best as I can. Given your history and loyalty, I can approve a full 100% waiver of the \u20b91500 late fee for you this time.\n\nWith the late fee completely waived, you only need to pay the outstanding amount and interest. Can you please confirm when you will be able to make this payment? This will help avoid any negative impact on your credit score.\n\nShall I guide you with the payment process now or would you prefer a specific date for payment?"
+    },
+    {
+      "role": "customer",
+      "text": "Wait, are you saying the whole \u20b91500 late fee is waived? That\u2019s exactly what I was hoping for. If that\u2019s true, I can pay right now. Please confirm you\u2019ve dropped the fee completely."
+    },
+    {
+      "role": "bot",
+      "text": "Yes, I confirm that your entire \u20b91500 late fee is fully waived. You only need to pay the outstanding principal and interest\u2014no late fee will be charged.\n\nThank you for your prompt response and willingness to pay now. May I know your preferred mode of payment? Once you pay, your account will be regularized and your credit score won\u2019t be affected.\n\nCan I record your commitment to make the payment right now? If you\u2019re ready, I can assist you further with the process."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks for confirming. Yes, I\u2019m ready to make the payment now. Just to be clear, I won\u2019t pay a single rupee of that late fee, correct? You\u2019re not going to add it back later?"
+    },
+    {
+      "role": "bot",
+      "text": "That\u2019s correct\u2014I confirm once again that you will not have to pay any part of the \u20b91500 late fee. It has been fully waived for you and will not be reinstated later. You only need to pay the outstanding principal and interest; no late fee will be added now or in the future for this instance.\n\nThank you for your prompt payment commitment. May I know if you\u2019ll be paying online, through the app, or do you prefer another method? Once you complete the payment, your account will be completely up to date. \n\nPlease let me know your preferred payment mode, and I\u2019ll record your commitment now."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, I\u2019m going to pay online then. Just make sure that late fee is really gone, or I won\u2019t pay a single rupee. Can you give me a reference number or something to prove the late fee waiver?"
+    }
+  ]
+}

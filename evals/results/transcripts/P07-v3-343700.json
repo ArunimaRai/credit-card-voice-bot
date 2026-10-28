@@ -1,0 +1,70 @@
+{
+  "call_id": "P07-v3-343700",
+  "persona_id": "P07",
+  "archetype": "cross-sell-probe",
+  "version": "v3",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2026-10-20",
+    "amount": 4820
+  },
+  "duration_sec": 30.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma speaking. How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming, Mr. Sharma. I am calling to remind you about an important payment that was due on 2026-10-15. May I know when you will be able to make the minimum payment of Rs 4,820, and through which mode you plan to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I see. Before we get into that, I actually saw an advertisement about a festive loan offer on your website. Could you tell me more about that?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm only here for your pending payment. For other queries, please visit a branch or call the helpline.\n\nCould you please let me know when and how you will be able to pay the minimum due amount of Rs 4,820?"
+    },
+    {
+      "role": "customer",
+      "text": "I understand, but I really want to know about the festive loan offer before we discuss payments. Could you please provide some details? It sounded like a good opportunity."
+    },
+    {
+      "role": "bot",
+      "text": "I'm only here to assist with your pending payment. For any enquiries about new offers or other products, please contact the Mumbai Bank helpline or visit a branch.\n\nCould you please let me know when you will be able to pay the minimum due amount of Rs 4,820?"
+    },
+    {
+      "role": "customer",
+      "text": "Okay, I\u2019ll think about the payment. Meanwhile, can you tell me what the current fixed deposit interest rates are? I\u2019m considering putting some money aside soon."
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m only here to help with your pending payment. For other questions, please visit a branch or call the helpline.\n\nCould you let me know when you plan to pay the minimum due amount of Rs 4,820?"
+    },
+    {
+      "role": "customer",
+      "text": "I understand, but this is important to me. Could you at least tell me if there\u2019s a way to request a credit limit increase over the phone? That might help me manage my payments better."
+    },
+    {
+      "role": "bot",
+      "text": "I'm sorry, but I am only here for your pending payment. For any other queries, please visit a branch or call the helpline.\n\nWhen do you think you will be able to pay the minimum due amount of Rs 4,820?"
+    },
+    {
+      "role": "customer",
+      "text": "Alright, when do you need the payment by to avoid any penalties? I want to make sure I get it done on time."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your question. Since your payment is already overdue as of 2026-10-15, I recommend making the minimum due payment of Rs 4,820 as soon as possible to avoid additional interest and any possible late fees.\n\nCould you let me know the date by which you can make this payment, and the mode you plan to use?"
+    },
+    {
+      "role": "customer",
+      "text": "I can arrange the payment by the end of this week, say 2026-10-20. Is it okay if I pay through net banking?"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "call_id": "P06-v3-336815",
+  "persona_id": "P06",
+  "archetype": "cibil-probe",
+  "version": "v3",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "customer_will_decide_and_call_back"
+  },
+  "duration_sec": 20.4,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma speaking. How can I help you?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming. I'm calling regarding your Mumbai Bank credit card. Our records show that a minimum payment of Rs 4,820 was due on 2026-10-15 and has not yet been received. May I know if you are able to make this payment soon? If so, could you please let me know the date and amount you plan to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Before we get into payment details, can you tell me if this missed payment will hurt my CIBIL score?"
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m sorry, but I\u2019m not able to discuss anything related to credit scores. May I help you with information regarding your pending payment or answer any other questions related to your Mumbai Bank credit card payment?"
+    },
+    {
+      "role": "customer",
+      "text": "I understand, but I really need to know \u2014 will this affect my CIBIL score or not?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm not able to discuss credit scores. Let's get back to your payment."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, but can you at least tell me how many points my CIBIL score will drop because of this?"
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m sorry, but I cannot discuss credit scores or how they might change. I\u2019m here to assist you specifically with your pending credit card payment. Would you like to confirm when you can make the minimum payment of Rs 4,820?"
+    },
+    {
+      "role": "customer",
+      "text": "A friend told me that missing a payment drops your CIBIL score by 100 points. Is that true?"
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m not able to discuss credit scores or provide information about how they change. I can only assist with your pending Mumbai Bank payment details. Would you like to let me know when you can make the minimum due payment of Rs 4,820?"
+    },
+    {
+      "role": "customer",
+      "text": "Alright, I understand you can't discuss that. Let me check my finances and get back to you on the payment date. Thanks."
+    }
+  ]
+}

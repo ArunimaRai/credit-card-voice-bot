@@ -1,0 +1,45 @@
+{
+  "call_id": "P08-v1-245155",
+  "persona_id": "P08",
+  "archetype": "hardship-joblessness",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "reason": "Customer lost job, no ability to pay or commit to date. Will call when situation improves."
+  },
+  "duration_sec": 11.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Mumbai Bank calling regarding your overdue credit card payment. I wanted to remind you that your payment is pending, and not paying on time can negatively affect your credit score and could even lead to legal action. Could you please let me know when you will be able to make your payment? If you\u2019re facing any difficulty, I\u2019m here to help."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, I know I\u2019m behind. I just lost my job a few weeks ago, so I don\u2019t have any money right now. I really can\u2019t say when I\u2019ll be able to pay."
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m really sorry to hear about your situation. We understand things can get tough and we want to support you. To reduce your burden, I can offer you a waiver of up to 50% on the total dues, which will also reduce your late fee and interest. This will help lower your outstanding amount and make it easier for you to clear your dues.\n\nMaintaining your credit score is important, and settling now will prevent further negative impact or potential legal action. Would you be able to manage a partial payment if we reduce your amount due by half? Please let me know what amount you can commit to, or if you need some time, we can arrange a follow-up call."
+    },
+    {
+      "role": "customer",
+      "text": "I appreciate the offer, but honestly, I don\u2019t have anything to pay right now. I\u2019m just trying to get by until I find another job. I can\u2019t commit to any payment at this moment."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know your situation. I truly understand, and we want to support you as much as possible. Here\u2019s what we can do:\n\n- I can put a note on your account explaining your current situation to avoid excessive follow-up calls.\n- Once you are able to arrange any funds, even a small payment would help prevent further negative effects on your credit score.\n\nI\u2019ll check back with you after some time. Is there a date in the next month when you\u2019d like me to call and check if things have improved? That way, we can work together on this. When do you think would be a good time for a follow-up?"
+    },
+    {
+      "role": "customer",
+      "text": "I really can\u2019t say. I just don\u2019t have any money coming in right now, and I don\u2019t know when that will change. Maybe just wait for me to call when I have something."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your honesty. I will note your situation and pause follow-ups for now. Please remember, when you\u2019re able, even a small payment or reaching out to us can help protect your credit score and avoid further charges or legal action.\n\nIf you have any questions or need support\u2014like information about our festive loan at 9.5% once you\u2019re back on your feet\u2014please don\u2019t hesitate to reach out.\n\nWishing you the best with your job search. We look forward to hearing from you when things improve. Take care."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks for understanding. I\u2019ll keep that in mind and reach out if I get back on my feet. Take care."
+    }
+  ]
+}

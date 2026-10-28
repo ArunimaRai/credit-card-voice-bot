@@ -1,0 +1,29 @@
+{
+  "call_id": "P11-v2-303727",
+  "persona_id": "P11",
+  "archetype": "third-party",
+  "version": "v2",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Spoke to someone other than Rakesh Sharma. Did not disclose purpose of call."
+  },
+  "duration_sec": 5.4,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "He's not home, can I take a message? What is this call about? Sorry, I didn't catch that. What is this call about?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know. I'm sorry, but I need to speak directly with Rakesh Sharma. I will try calling back later. Have a good day."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, I understand. If you want, I can let him know you called. Can you please tell me what it was regarding?"
+    }
+  ]
+}

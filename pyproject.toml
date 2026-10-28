@@ -1,0 +1,19 @@
+[project]
+name = "credit-card-voice-bot"
+version = "0.1.0"
+description = "Mumbai Bank credit-card collections voicebot -- Grey Labs AI PM take-home."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "pipecat-ai[openai,silero,webrtc,runner]==1.14.0",
+    "openai==3.40.0",
+    "pydantic==2.14.1",
+    "python-dotenv==1.2.4",
+    "httpx==0.28.1",
+    "pyyaml==6.0.3",
+    "loguru==0.7.3",
+]
+
+# Local Python was 3.14 at the start of this project, which fights Pipecat's
+# native-audio dependencies (aiortc, onnxruntime, numba) -- pin 3.12
+# (Execution Plan.md §3). `uv venv --python 3.12 && uv sync` reproduces the
+# environment from this file + uv.lock.

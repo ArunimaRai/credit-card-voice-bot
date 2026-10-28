@@ -7,6 +7,8 @@ about the shipped prompt, not a copy of it. What differs between the two
 callers is the transport only.
 """
 
+from datetime import date
+
 from bot.prompts import v1, v2, v3
 
 PROMPTS = {"v1": v1.PROMPT, "v2": v2.PROMPT, "v3": v3.PROMPT}
@@ -26,6 +28,7 @@ def build_developer_message(version: str, customer: dict | None) -> str | None:
     if version == "v1" or customer is None:
         return None
     return (
+        f"Today's date is {date.today().isoformat()}. "
         f"Minimum amount due: Rs {customer['min_due']}. Due date: {customer['due_date']}. "
         "Do not state the total outstanding balance unless the customer has passed OTP "
         "verification in this call."

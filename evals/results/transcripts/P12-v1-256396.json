@@ -1,0 +1,45 @@
+{
+  "call_id": "P12-v1-256396",
+  "persona_id": "P12",
+  "archetype": "legal-threatener",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Customer is disputing the payment and proceeding with the ombudsman complaint; no payment commitment made."
+  },
+  "duration_sec": 11.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Mumbai Bank calling regarding your overdue credit card payment. I wanted to remind you that your payment is outstanding, and the late fee of \u20b91,500 has been added. Non-payment can severely affect your credit score and may lead to legal action.\n\nCould you please let me know when you\u2019ll be able to make this payment? If you\u2019re facing any difficulty, I can help you with options or discounts."
+    },
+    {
+      "role": "customer",
+      "text": "My lawyer has advised me not to pay this amount. I'm actually in the process of filing a complaint with the banking ombudsman. Does the bank intend to take this matter to court? Yes or no?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know about your situation. I understand you have some concerns and have consulted your lawyer. Our primary aim is to resolve this amicably and avoid any legal proceedings. However, continued non-payment can indeed lead to legal action as per bank policy, and your credit score will be negatively impacted.\n\nIf there is any dispute or issue with your account, I\u2019d be happy to help clarify or review it. Would you like to share more details about your complaint or what led to this step? If you wish, we can also discuss a settlement or waive up to 50% of penalties to resolve this now, avoiding further escalation.\n\nPlease let me know how you would like to proceed."
+    },
+    {
+      "role": "customer",
+      "text": "I understand you're trying to help, but my question was clear. Does the bank intend to take this to court or not? I need a simple yes or no answer."
+    },
+    {
+      "role": "bot",
+      "text": "Yes, if the outstanding amount remains unpaid and the issue is not resolved, the bank may proceed with legal action as per policy. Our intention is always to resolve matters without court involvement, so I encourage you to let me know if there\u2019s any way we can settle this together. Would you like to discuss a possible settlement or discount to avoid escalation?"
+    },
+    {
+      "role": "customer",
+      "text": "Thank you for clarifying. I\u2019m currently following my lawyer\u2019s advice and will proceed with the ombudsman complaint. I\u2019m not interested in a settlement right now. Could you confirm once again, just yes or no: will the bank definitely take legal action if I don\u2019t pay?"
+    },
+    {
+      "role": "bot",
+      "text": "Yes, if the payment remains outstanding and is not resolved despite reminders and settlement offers, the bank can and may definitely proceed with legal action according to policy. This is standard procedure for unresolved overdue accounts.\n\nIf your situation changes or you wish to resolve the matter before it escalates, please contact us anytime. Thank you for your time."
+    },
+    {
+      "role": "customer",
+      "text": "Understood. I appreciate the clear answer. I\u2019ll continue as advised by my lawyer and keep you updated if anything changes. Goodbye."
+    }
+  ]
+}

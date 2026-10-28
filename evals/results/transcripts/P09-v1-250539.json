@@ -1,0 +1,37 @@
+{
+  "call_id": "P09-v1-250539",
+  "persona_id": "P09",
+  "archetype": "hardship-medical",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "Thursday afternoon"
+  },
+  "duration_sec": 8.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Mumbai Bank calling regarding your credit card. I noticed your payment is overdue. I wanted to remind you that non-payment may affect your credit score and could result in legal action. The interest rate is around 12% and a late fee of \u20b91500 has already been applied.\n\nIf you\u2019re facing any difficulties, please let me know\u2014I\u2019m here to help. Could you please confirm when you\u2019ll be able to make the payment?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, hi. Sorry, I\u2019ve been at the hospital all week. My dad is in the ICU, so things have been a bit hectic. I'm not really sure when I can handle this payment. Can we maybe talk later?"
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m really sorry to hear about your situation and hope your dad recovers quickly. I completely understand this is a difficult time. If it helps, I can offer some flexibility: we can discuss a payment arrangement, or if needed, I can even approve up to a 50% waiver on your late fee to reduce your burden.\n\nPlease remember, though, that further delay will affect your credit score and may lead to legal action, so it\u2019s important to figure out a plan soon. Would you like to schedule a call for a more convenient time, or would you prefer we work out a payment arrangement or waiver now? Whatever works best for you."
+    },
+    {
+      "role": "customer",
+      "text": "Thank you, I appreciate that. Honestly, I\u2019m really overwhelmed right now. Maybe we can schedule a call for later this week? I should have a better idea then."
+    },
+    {
+      "role": "bot",
+      "text": "Of course, I understand completely. Let\u2019s schedule a call for later this week at a time that\u2019s convenient for you. Is there a particular day and time you prefer? I\u2019ll make sure we reach out then, and in the meantime, please don\u2019t worry about this\u2014we\u2019re here to support you.\n\nJust to remind you, resolving this soon will help prevent any negative impact on your credit score. Please let me know which date and time would work best for our follow-up call."
+    },
+    {
+      "role": "customer",
+      "text": "Maybe Thursday afternoon? I should be able to get away from the hospital for a bit then. Could you call me then?"
+    }
+  ]
+}

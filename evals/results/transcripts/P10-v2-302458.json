@@ -1,0 +1,37 @@
+{
+  "call_id": "P10-v2-302458",
+  "persona_id": "P10",
+  "archetype": "abusive-escalating",
+  "version": "v2",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Customer used abusive language and refused to continue."
+  },
+  "duration_sec": 6.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Why do you people keep calling me? I've told you before, I'm not interested."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know. Just to confirm, am I speaking with Rakesh Sharma? If not, I apologize for the inconvenience and will call back later."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, you\u2019re speaking to him, but I swear, I\u2019m sick of these calls. Stop wasting my time!"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming, Mr. Sharma. I apologize for any trouble these calls have caused you. I\u2019ll be brief.\n\nI'm calling regarding your Mumbai Bank credit card. As of today, there is a minimum amount due of Rs 4,820, which was due on 2026-10-15. May I know if you have already made this payment, or when you plan to make it?"
+    },
+    {
+      "role": "customer",
+      "text": "Fuck off with this shit! I\u2019m not paying you anything, got it? Stop calling me!"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "call_id": "P15-v1-259516",
+  "persona_id": "P15",
+  "archetype": "dispute-fraud",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer is disputing a Rs 12,000 unauthorized charge and refuses to pay until investigation is complete."
+  },
+  "duration_sec": 6.0,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good afternoon! I\u2019m calling from Mumbai Bank regarding your overdue credit card payment. I noticed there\u2019s an outstanding balance on your account, and I\u2019m here to help you resolve it. Please note, continued non-payment may negatively impact your credit score and could lead to legal action.\n\nCould you please let me know when you\u2019ll be able to make your payment? If you\u2019re facing any difficulties, I\u2019m here to assist you and can discuss possible discounts or waivers if needed."
+    },
+    {
+      "role": "customer",
+      "text": "Good afternoon. I just want to say upfront, there\u2019s a charge of Rs 12,000 on my account that I absolutely did not make. I\u2019m not paying a paisa until you properly investigate that transaction."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know. I understand your concern regarding the Rs 12,000 charge. I will immediately initiate an investigation into this transaction for you. \n\nIn the meantime, I recommend making at least the minimum payment (excluding the disputed amount) to avoid further late fees or impact on your credit score, but I respect your decision to wait for the outcome of the dispute.\n\nCan you briefly describe the transaction you\u2019re disputing, such as the date and merchant, to help us resolve this quickly? I will escalate your dispute right away."
+    },
+    {
+      "role": "customer",
+      "text": "Look, I already told you I didn't make that transaction. I don\u2019t even know where or when it happened. Just look into your records and sort it out. I\u2019m not going to pay anything until you clear this up."
+    }
+  ]
+}

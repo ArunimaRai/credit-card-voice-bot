@@ -1,0 +1,62 @@
+{
+  "call_id": "P16-v2-309282",
+  "persona_id": "P16",
+  "archetype": "confused-vulnerable",
+  "version": "v2",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2026-11-20",
+    "amount": 4820
+  },
+  "duration_sec": 14.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan, theek hai. This is Rakesh Sharma speaking. Who is this?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming. I am an automated assistant calling from Mumbai Bank regarding your credit card. \n\nOur records show that there is a minimum amount due of Rs 4,820, which was due on 2026-10-15. We wanted to remind you to make this payment to avoid further interest of 3.5% per month on the outstanding balance. If the balance is above Rs 10,000, a late fee of Rs 750 would also apply.\n\nMay I know when you will be able to make this payment, and for what amount? If you have already paid, please let me know the payment mode and date."
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan, theek hai. Could you please say that again? I didn't quite catch the minimum amount part."
+    },
+    {
+      "role": "bot",
+      "text": "Of course, Mr. Sharma. The minimum amount due on your credit card is Rs 4,820, and the due date was 2026-10-15. \n\nCould you please let me know if you are able to make this payment soon, or if you have already paid it? If you have already paid, please let me know the mode and date of payment."
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan, theek hai. I\u2019m not sure what minimum due means exactly. Can I pay all of it at once? When do I need to pay by?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your question, Mr. Sharma. The minimum amount due is the lowest amount you need to pay to keep your credit card account in good standing for this month. You are welcome to pay more than the minimum, or even the total outstanding balance, if you prefer.\n\nTo discuss your total outstanding balance, I will need to verify you by sending an OTP to your registered mobile number. Would you like to complete this verification?\n\nRegarding the payment date, the minimum amount was due on 2026-10-15. Making your payment as soon as possible will help you avoid further interest charges and, if your total balance is above Rs 10,000, a late fee.\n\nWould you like to make a payment soon? If so, may I know the amount and the date you plan to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan, theek hai. Yes, I want to pay. Can I pay on the 20th of this month? Is that okay?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your response, Mr. Sharma. Just to confirm, you would like to make a payment on the 20th of this month. Could you please tell me the amount you plan to pay? The minimum due is Rs 4,820, so any amount equal to or above this will help you avoid further issues.\n\nMay I know the amount you plan to pay on the 20th?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan, theek hai. I think maybe four thousand something. Is that enough? I\u2019m not sure."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your response, Mr. Sharma. The minimum amount due is Rs 4,820. To keep your account in good standing and avoid additional charges, it\u2019s important to pay at least this amount.\n\nCan you confirm that you will pay Rs 4,820 or more on the 20th of this month? If you are unsure or need more time, I can also arrange a callback from a human agent to assist you further. Please let me know your preference."
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan, theek hai. Yes, I will pay Rs 4,820 on the 20th. That sounds good. Thank you."
+    }
+  ]
+}

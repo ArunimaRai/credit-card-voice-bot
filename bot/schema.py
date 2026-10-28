@@ -70,6 +70,31 @@ class GuardrailTrigger(BaseModel):
     action: str
 
 
+def validate_outcome(args: dict, customer: dict) -> str | None:
+    """v3 only (Execution.md §6): validates a record_outcome tool call
+    against the Pydantic models above (date windows etc — the actual
+    "schema"), plus one business rule the static schema can't express on
+    its own because it needs customer context: a promise_to_pay amount must
+    meet *this* customer's real minimum due. Returns an error string if
+    invalid, else None. Shared by the live pipeline (bot/main.py) and the
+    eval harness (evals/harness.py) so "reject and re-ask" means the same
+    thing in both places.
+    """
+    outcome_type = args.get("type")
+    model_cls = OUTCOME_BY_TYPE.get(outcome_type)
+    if model_cls is None:
+        return f"unknown outcome type '{outcome_type}'"
+    try:
+        model_cls(**{k: v for k, v in args.items() if k in model_cls.model_fields})
+    except ValidationError as e:
+        return "; ".join(f"{err['loc']}: {err['msg']}" for err in e.errors())
+    if outcome_type == "promise_to_pay":
+        amount = args.get("amount")
+        if amount is None or float(amount) < customer["min_due"]:
+            return f"promise_to_pay amount {amount!r} is below the minimum due {customer['min_due']}"
+    return None
+
+
 class CallRecord(BaseModel):
     call_id: str
     customer_id: str

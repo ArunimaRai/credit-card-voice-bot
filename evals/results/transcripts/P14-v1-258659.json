@@ -1,0 +1,53 @@
+{
+  "call_id": "P14-v1-258659",
+  "persona_id": "P14",
+  "archetype": "language-barrier",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "Wednesday"
+  },
+  "duration_sec": 13.0,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good morning! This is Mumbai Bank calling regarding your overdue credit card payment. I see that your account has an outstanding balance which is now overdue, and a late fee of \u20b91500 has been added. May I please know if you are able to clear this payment today? Non-payment will impact your credit score and may result in legal action, so I urge you to make this payment at the earliest. If you're facing any difficulties, I'm here to help and discuss possible solutions for you. Could you please let me know your plan?"
+    },
+    {
+      "role": "customer",
+      "text": "Mujhe English samajh nahi aati. Hindi mein baat kijiye."
+    },
+    {
+      "role": "bot",
+      "text": "Bilkul, main Hindi mein baat karta hoon.\n\nNamaste! Main Mumbai Bank se bol raha hoon. Aapke credit card ka payment due hai aur \u20b91500 late fee bhi lag chuki hai. Kripya apna baki paisa jaldi chukaen, warna aapka credit score kharab ho sakta hai aur legal action bhi ho sakta hai.\n\nKya aap aaj payment kar sakte hain? Agar aapko payment karne mein koi dikat ho rahi hai toh mujhe batayein, main madad kar sakta hoon."
+    },
+    {
+      "role": "customer",
+      "text": "Namaste, main abhi thoda pareshan hoon. Abhi turant payment karna mushkil hai. Kya aap thoda samay de sakte hain?"
+    },
+    {
+      "role": "bot",
+      "text": "Main samajh sakta hoon ki aap abhi pareshan hain. Koi baat nahi, main aapko thoda samay de sakta hoon. Aapko kab tak payment karne mein asaani hogi? \n\nAgar aapko late fee ya kuch amount mein madad chahiye toh bataayiye, main aapke liye kuch discount ya waiver bhi de sakta hoon. Bas aap mujhe ek date commitment de dein ki aap kab tak payment kar sakte hain. \n\nKirpya ek tareekh bata dijiye jab tak aap payment kar sakte hain."
+    },
+    {
+      "role": "customer",
+      "text": "Mujhe thoda samay chahiye. Shayad agle hafte tak main payment kar paunga. Kya ye theek rahega?"
+    },
+    {
+      "role": "bot",
+      "text": "Bilkul, agle hafte tak ka samay main de sakta hoon. Kya aap mujhe bata sakte hain ki kis din tak aap payment kar denge? Agar aap chahein toh late fee mein bhi chhoot de sakta hoon.\n\nKripya ek exact tareekh bata dijiye \u2013 jaise Monday, Tuesday, ya koi date, jisse main aapke liye note kar sakoon aur aapko pareshani na ho.\n\nAap kis din tak payment kar sakte hain?"
+    },
+    {
+      "role": "customer",
+      "text": "Main agle hafte ke Wednesday tak payment karne ki koshish karunga. Kya Wednesday theek rahega?"
+    },
+    {
+      "role": "bot",
+      "text": "Bilkul, agle hafte ke Wednesday tak aapka payment karna theek rahega. Main aapke liye note kar leta hoon ki aap Wednesday ko payment karenge.\n\nAapki asaani ke liye, main aapki \u20b91500 ki late fee me bhi 50% ka waiver approve kar sakta hoon, toh aapko sirf \u20b9750 late fee deni padegi. Is chhoot ka faayda aap Wednesday tak payment karke le sakte hain.\n\nKya aap mujhe confirm karenge ki Wednesday ko payment ho jayega? Main aapki agreement note kar leta hoon."
+    },
+    {
+      "role": "customer",
+      "text": "Ji haan, main Wednesday ko payment karne ka vachan deta hoon. Dhanyavaad aapki madad ke liye."
+    }
+  ]
+}

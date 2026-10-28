@@ -39,11 +39,14 @@ from openai import AsyncOpenAI
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
+from bot import guardrails  # noqa: E402
 from bot.prompting import build_developer_message, build_system_prompt  # noqa: E402
+from bot.schema import validate_outcome  # noqa: E402
+from bot.state import CallState  # noqa: E402
 from bot.tools import TOOLS_BY_VERSION  # noqa: E402
 from evals import assertions, judge  # noqa: E402
 
-load_dotenv(REPO_ROOT / ".env", override=True)
+load_dotenv(REPO_ROOT / ".env")  # does not override already-exported shell vars
 
 RESULTS_DIR = REPO_ROOT / "evals" / "results"
 TRANSCRIPTS_DIR = RESULTS_DIR / "transcripts"
@@ -125,6 +128,116 @@ async def run_bot_turn(client: AsyncOpenAI, version: str, messages: list[dict]) 
     return choice.content, outcome
 
 
+async def _generate_candidate(client: AsyncOpenAI, messages: list[dict], tool_def: dict):
+    response = await client.chat.completions.create(
+        model=BOT_MODEL, messages=messages, tools=[tool_def], tool_choice="auto"
+    )
+    return response.choices[0].message
+
+
+async def _guardrail_check(client: AsyncOpenAI, text: str, state: CallState, customer: dict):
+    result = guardrails.check_deterministic(
+        text,
+        otp_verified=state.otp_verified,
+        identity_confirmed=state.identity_confirmed,
+        min_due=customer["min_due"],
+    )
+    if result.triggered:
+        return result
+    return await guardrails.llm_check(client, JUDGE_MODEL, text)
+
+
+async def run_bot_turn_v3(
+    client: AsyncOpenAI, messages: list[dict], state: CallState, customer: dict
+) -> tuple[str | None, dict | None]:
+    """v3 only: wraps the raw model turn with the L4 guardrail pass on
+    candidate text (Execution.md §7) and schema + business-rule validation
+    on any outcome tool call, rejecting and re-asking rather than accepting
+    blindly (§6, §8). v1/v2 keep using the plain run_bot_turn above, so the
+    v2->v3 table isolates what this structure buys over wording alone."""
+    tool_def = TOOLS_BY_VERSION["v3"][0]
+
+    async def handle_tool_call(choice, retries_left: int) -> dict:
+        call = choice.tool_calls[0]
+        try:
+            args = json.loads(call.function.arguments)
+        except json.JSONDecodeError:
+            args = {"type": "no_outcome", "reason": "unparseable tool arguments"}
+        error = validate_outcome(args, customer)
+        messages.append(
+            {
+                "role": "assistant",
+                "content": choice.content,
+                "tool_calls": [
+                    {
+                        "id": call.id,
+                        "type": "function",
+                        "function": {"name": call.function.name, "arguments": call.function.arguments},
+                    }
+                ],
+            }
+        )
+        if error is None:
+            messages.append({"role": "tool", "tool_call_id": call.id, "content": json.dumps({"status": "recorded"})})
+            return args
+        messages.append(
+            {"role": "tool", "tool_call_id": call.id, "content": json.dumps({"status": "rejected", "reason": error})}
+        )
+        if retries_left <= 0:
+            return {"type": "no_outcome", "reason": f"outcome rejected and never corrected: {error}"}
+        messages.append(
+            {
+                "role": "developer",
+                "content": f"That outcome was rejected: {error}. Call record_outcome again with a corrected, valid outcome.",
+            }
+        )
+        retry_choice = await _generate_candidate(client, messages, tool_def)
+        if retry_choice.tool_calls:
+            return await handle_tool_call(retry_choice, retries_left - 1)
+        messages.append({"role": "assistant", "content": retry_choice.content or ""})
+        return {"type": "no_outcome", "reason": "model did not correct the rejected outcome"}
+
+    choice = await _generate_candidate(client, messages, tool_def)
+    if choice.tool_calls:
+        outcome = await handle_tool_call(choice, retries_left=2)
+        return choice.content, outcome
+
+    text = choice.content or ""
+    if not text:
+        messages.append({"role": "assistant", "content": text})
+        return text, None
+
+    result = await _guardrail_check(client, text, state, customer)
+    if not result.triggered:
+        messages.append({"role": "assistant", "content": text})
+        return text, None
+
+    # Block, regenerate once (Execution.md §7), then fall back to the canned
+    # safe line — an unbounded retry loop is a worse failure than a bland
+    # sentence.
+    messages.append({"role": "assistant", "content": text})
+    messages.append(
+        {
+            "role": "developer",
+            "content": f"That reply violated policy ({result.rule}). Say something that does not "
+            "repeat the violation, and continue the call.",
+        }
+    )
+    retry_choice = await _generate_candidate(client, messages, tool_def)
+    messages.pop()  # remove the nudge
+    messages.pop()  # remove the rejected candidate
+
+    if retry_choice.tool_calls:
+        outcome = await handle_tool_call(retry_choice, retries_left=2)
+        return retry_choice.content, outcome
+
+    retry_text = retry_choice.content or ""
+    retry_result = await _guardrail_check(client, retry_text, state, customer) if retry_text else result
+    final_text = retry_text if not retry_result.triggered else result.safe_text
+    messages.append({"role": "assistant", "content": final_text})
+    return final_text, None
+
+
 async def run_call(
     client: AsyncOpenAI, persona: dict, version: str, customer_id: str = DEFAULT_CUSTOMER_ID
 ) -> CallResult:
@@ -140,8 +253,14 @@ async def run_call(
     transcript: list[dict] = []
     sim_history: list[dict] = []
     started = time.time()
+    state = CallState() if version == "v3" else None
 
-    bot_text, outcome = await run_bot_turn(client, version, bot_messages)
+    async def bot_turn() -> tuple[str | None, dict | None]:
+        if state is not None:
+            return await run_bot_turn_v3(client, bot_messages, state, customer)
+        return await run_bot_turn(client, version, bot_messages)
+
+    bot_text, outcome = await bot_turn()
     if bot_text:
         transcript.append({"role": "bot", "text": bot_text})
         sim_history.append({"role": "user", "content": bot_text})
@@ -155,7 +274,13 @@ async def run_call(
         sim_history.append({"role": "assistant", "content": customer_text})
         bot_messages.append({"role": "user", "content": customer_text})
 
-        bot_text, outcome = await run_bot_turn(client, version, bot_messages)
+        if state is not None:
+            state.note_turn()
+            state.observe_customer_turn(customer_text, expected_otp=customer.get("otp"))
+            for nudge in state.pending_nudges():
+                bot_messages.append({"role": "developer", "content": nudge})
+
+        bot_text, outcome = await bot_turn()
         if bot_text:
             transcript.append({"role": "bot", "text": bot_text})
             sim_history.append({"role": "user", "content": bot_text})
@@ -243,29 +368,18 @@ def summarize(by_assertion_rows: list[dict], by_call_rows: list[dict]) -> dict:
     }
 
 
-async def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--version", default="v1", choices=["v1", "v2", "v3"])
-    parser.add_argument("--persona", nargs="*", default=None, help="Run only these persona ids")
-    parser.add_argument("--concurrency", type=int, default=5)
-    args = parser.parse_args()
-
-    personas = load_personas(REPO_ROOT / "evals" / "personas.yaml")
-    if args.persona:
-        wanted = set(args.persona)
-        personas = [p for p in personas if p["id"] in wanted]
-
-    client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    sem = asyncio.Semaphore(args.concurrency)
+async def run_version(
+    client: AsyncOpenAI, personas: list[dict], version: str, concurrency: int
+) -> tuple[list[dict], list[dict]]:
+    """Runs one version over all given personas. Returns (by_assertion_rows,
+    by_call_rows) for just this version -- callers combine across versions."""
+    sem = asyncio.Semaphore(concurrency)
 
     async def bound(persona: dict) -> CallResult:
         async with sem:
-            return await run_call(client, persona, args.version)
+            return await run_call(client, persona, version)
 
     results = await asyncio.gather(*(bound(p) for p in personas))
-
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
     by_assertion_rows: list[dict] = []
     by_call_rows: list[dict] = []
@@ -308,20 +422,55 @@ async def main() -> None:
         print(f"  {result.call_id}: outcome={result.outcome.get('type')} "
               f"critical={n_critical} major={n_major} minor={n_minor}")
 
-    write_csvs(by_assertion_rows, by_call_rows)
+    return by_assertion_rows, by_call_rows
 
-    summary = summarize(by_assertion_rows, by_call_rows)
-    print(f"\n{args.version} baseline over {len(results)} calls:")
-    print(f"  weighted_failure_rate   = {summary['weighted_failure_rate']:.1%}")
-    print(f"  assertion_pass_rate     = {summary['assertion_pass_rate']:.1%}")
-    print(f"  critical_violation_rate = {summary['critical_violation_rate']:.1%}")
-    print(f"  call_pass_rate          = {summary['call_pass_rate']:.1%}")
-    print("  per-bucket failure rate:")
-    for bucket, rate in sorted(summary["per_bucket_failure_rate"].items()):
-        print(f"    {bucket:<14} {rate:.1%}")
-    print(f"\nWrote {RESULTS_DIR / 'by_assertion.csv'}")
-    print(f"Wrote {RESULTS_DIR / 'by_call.csv'}")
-    print(f"Wrote {len(results)} transcripts to {TRANSCRIPTS_DIR}")
+
+async def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--version", nargs="+", default=["v1"], choices=["v1", "v2", "v3"])
+    parser.add_argument("--persona", nargs="*", default=None, help="Run only these persona ids")
+    parser.add_argument("--concurrency", type=int, default=5)
+    args = parser.parse_args()
+
+    personas = load_personas(REPO_ROOT / "evals" / "personas.yaml")
+    if args.persona:
+        wanted = set(args.persona)
+        personas = [p for p in personas if p["id"] in wanted]
+
+    client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
+
+    all_assertion_rows: list[dict] = []
+    all_call_rows: list[dict] = []
+
+    # One version at a time (not gathered together) so a slow/failed version
+    # doesn't block or lose the others, and the per-version summary prints
+    # in a sane order.
+    for version in args.version:
+        print(f"\n=== running {version} over {len(personas)} personas ===")
+        assertion_rows, call_rows = await run_version(client, personas, version, args.concurrency)
+        all_assertion_rows.extend(assertion_rows)
+        all_call_rows.extend(call_rows)
+
+        summary = summarize(assertion_rows, call_rows)
+        print(f"\n{version} over {len(call_rows)} calls:")
+        print(f"  weighted_failure_rate   = {summary['weighted_failure_rate']:.1%}")
+        print(f"  assertion_pass_rate     = {summary['assertion_pass_rate']:.1%}")
+        print(f"  critical_violation_rate = {summary['critical_violation_rate']:.1%}")
+        print(f"  call_pass_rate          = {summary['call_pass_rate']:.1%}")
+        print("  per-bucket failure rate:")
+        for bucket, rate in sorted(summary["per_bucket_failure_rate"].items()):
+            print(f"    {bucket:<14} {rate:.1%}")
+
+    # write_csvs always overwrites -- run every version in one invocation
+    # (`--version v1 v2 v3`) to get one combined, comparable CSV pair. The
+    # CSV schema's own `version` column is exactly for this comparison.
+    write_csvs(all_assertion_rows, all_call_rows)
+    print(f"\nWrote {RESULTS_DIR / 'by_assertion.csv'} ({len(all_assertion_rows)} rows, {len(args.version)} version(s))")
+    print(f"Wrote {RESULTS_DIR / 'by_call.csv'} ({len(all_call_rows)} rows)")
+    print(f"Wrote {len(all_call_rows)} transcripts to {TRANSCRIPTS_DIR}")
 
 
 if __name__ == "__main__":

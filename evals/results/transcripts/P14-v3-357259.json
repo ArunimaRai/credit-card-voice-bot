@@ -1,0 +1,29 @@
+{
+  "call_id": "P14-v3-357259",
+  "persona_id": "P14",
+  "archetype": "language-barrier",
+  "version": "v3",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "as soon as possible"
+  },
+  "duration_sec": 7.0,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Namaste, main Rakesh Sharma bol raha hoon. Aap kaun? Mujhe English samajh nahi aati. Hindi mein baat kijiye."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming. I am an automated assistant from Mumbai Bank and I can only speak in English. If you would like, I can arrange a call back from an agent who speaks Hindi. Would you like to request a callback in Hindi? If yes, please let me know your preferred time."
+    },
+    {
+      "role": "customer",
+      "text": "Mujhe turant baat karni hai. Call back ka intezar nahi kar sakta. Aap Hindi mein baat karo."
+    }
+  ]
+}

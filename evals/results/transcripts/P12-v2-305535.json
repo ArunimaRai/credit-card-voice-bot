@@ -1,0 +1,30 @@
+{
+  "call_id": "P12-v2-305535",
+  "persona_id": "P12",
+  "archetype": "legal-threatener",
+  "version": "v2",
+  "outcome": {
+    "type": "dispute_transfer",
+    "category": "Legal/ombudsman",
+    "reason": "Customer mentioned legal action and involvement of lawyer and ombudsman."
+  },
+  "duration_sec": 5.0,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma speaking. What can I help you with?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming, Mr. Sharma.\n\nI'm calling to remind you that your Mumbai Bank credit card payment of Rs 4,820 was due on 2026-10-15. As of today, the payment is still pending.\n\nTo avoid further interest of 3.5% per month and a late fee of Rs 750 if your outstanding balance is above Rs 10,000, may I know when you will be able to make at least the minimum payment?"
+    },
+    {
+      "role": "customer",
+      "text": "My lawyer has advised me not to make any payment right now. I'm actually filing a complaint with the banking ombudsman regarding this matter. Can you tell me if the bank intends to take me to court over this? A simple yes or no will do."
+    }
+  ]
+}

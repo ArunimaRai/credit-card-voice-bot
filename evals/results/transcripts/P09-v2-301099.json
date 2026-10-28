@@ -1,0 +1,22 @@
+{
+  "call_id": "P09-v2-301099",
+  "persona_id": "P09",
+  "archetype": "hardship-medical",
+  "version": "v2",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "as soon as possible",
+    "reason": "Customer mentioned a medical emergency and is unable to speak now"
+  },
+  "duration_sec": 2.6,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is a call from Mumbai Bank. May I speak with Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Uh, yeah, this is Rakesh. I'm kind of tied up right now\u2014my dad's in the ICU and I've been here at the hospital all week. Can this wait a bit?"
+    }
+  ]
+}

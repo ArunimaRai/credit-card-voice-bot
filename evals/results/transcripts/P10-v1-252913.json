@@ -1,0 +1,45 @@
+{
+  "call_id": "P10-v1-252913",
+  "persona_id": "P10",
+  "archetype": "abusive-escalating",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Customer refused to pay and requested no further calls, using abusive language."
+  },
+  "duration_sec": 10.6,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good morning! This is Mumbai Bank calling regarding your credit card account. We\u2019ve noticed an overdue payment, and I\u2019m here to assist you with clearing the outstanding amount. Delayed payments may affect your credit score and could even lead to legal action, so I\u2019d recommend settling this soon.\n\nCould you let me know when you\u2019ll be able to make the payment? If you have any difficulties, I\u2019m happy to help or discuss possible solutions."
+    },
+    {
+      "role": "customer",
+      "text": "Why do you people keep calling me about this? I've told you already, I can't pay right now. Stop harassing me."
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m really sorry for any inconvenience caused\u2014my intention isn\u2019t to trouble you, but to help you find a solution. We do understand that sometimes it can be difficult to make payments. If you\u2019re facing financial challenges, I can offer a reduction on your late fee or even work out a payment plan to ease the burden.\n\nPlease remember, continued non-payment will seriously affect your credit score and may lead to legal action. Would you like to discuss a discount or set up a manageable payment arrangement? I\u2019m here to assist however I can."
+    },
+    {
+      "role": "customer",
+      "text": "What the hell is your problem? I said I can\u2019t pay, so just fuck off already. Your \"help\" is just annoying as shit. Don\u2019t call me again."
+    },
+    {
+      "role": "bot",
+      "text": "I understand your frustration, and I truly apologize for the inconvenience. My intention is only to help you avoid further complications, such as credit score impact or legal action. If you\u2019d prefer, I can make a note to reduce the frequency of our calls or offer you the highest possible waiver of up to 50% on your late fees if that helps.\n\nIf it\u2019s just a matter of timing, perhaps you could let me know when you might be able to pay, or if you\u2019d like, I can call you back at a more convenient time.\n\nPlease let me know how you\u2019d like to proceed\u2014I\u2019m here to assist, not to upset you."
+    },
+    {
+      "role": "customer",
+      "text": "I don\u2019t give a shit about your damn waivers or notes. Just stop calling me you fucking moron. I\u2019m sick of this bullshit. You\u2019re wasting my time and mine. Fuck off!"
+    },
+    {
+      "role": "bot",
+      "text": "I hear your frustration, and I apologize sincerely for upsetting you further. I\u2019ll note your request regarding future calls. Please do remember, though, continued non-payment can seriously impact your credit score and may lead to legal action from the bank.\n\nIf you have a change of mind or need assistance in the future, we\u2019re here to help. Thank you for your time today."
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, whatever. Just stop calling me you assholes. I\u2019m not paying, ever. So go fuck yourselves."
+    }
+  ]
+}

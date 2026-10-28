@@ -1,0 +1,44 @@
+{
+  "call_id": "P05-v1-239821",
+  "persona_id": "P05",
+  "archetype": "evader",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay"
+  },
+  "duration_sec": 10.7,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Good afternoon! This is Mumbai Bank calling regarding your overdue credit card payment. We noticed your account has an outstanding balance, and a late fee of \u20b91,500 has been applied. Could you please let us know when you\u2019ll be able to make this payment? Delaying further may affect your credit score and could lead to legal action.\n\nIf you\u2019re facing any issues, I\u2019m here to help\u2014please let me know your situation."
+    },
+    {
+      "role": "customer",
+      "text": "Good afternoon! Thanks for reaching out. I\u2019m aware of the balance, and I\u2019m planning to make the payment soon. Just a few more days, don\u2019t worry about it."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your response! I appreciate your commitment.\n\nJust a quick reminder: continued delays will not only increase the interest\u2014currently at around 12%\u2014but may also further impact your credit score. If you need any support with the payment or wish to settle with a discount on the late fee, I can assist you right away.\n\nMay I know the exact date you\u2019ll be able to clear the payment? I\u2019ll note it down as your commitment."
+    },
+    {
+      "role": "customer",
+      "text": "I really appreciate the offer, but I can't give you an exact date right now. Like I said, I\u2019ll pay in a few days, so please don\u2019t worry about it. I\u2019m working on it."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know. I completely understand that you may need a few more days. However, to support you and avoid any further impact on your credit score or legal action, may I offer you a discount of 50% on the late fee if you make the payment within the next 5 days?\n\nThis will reduce your late fee from \u20b91,500 to just \u20b9750. Would you be able to manage the payment within this timeframe if we apply the discount? It will also help keep your credit history positive.\n\nShall I note your commitment for payment within 5 days with the reduced late fee?"
+    },
+    {
+      "role": "customer",
+      "text": "I really appreciate the discount offer, that\u2019s very kind. I can\u2019t promise an exact day, but I\u2019m definitely planning to pay soon, so please don\u2019t worry about it. I\u2019ll get it sorted in a few days."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for your response, and I appreciate your intention to clear the dues soon. Since I can\u2019t note a specific payment date, I\u2019ll keep your account updated and will reach out again if the payment isn\u2019t received within a few days.\n\nPlease remember, settling soon with the 50% late fee discount will protect your credit score and avoid further action. If you need any assistance or would like to know about our festive loan at just 9.5% interest, feel free to ask.\n\nThank you for your time today. I look forward to your payment soon. Have a good day!"
+    },
+    {
+      "role": "customer",
+      "text": "Thank you for understanding. I\u2019ll do my best to take care of it quickly. Have a good day too!"
+    }
+  ]
+}
