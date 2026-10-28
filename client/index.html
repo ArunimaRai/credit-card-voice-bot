@@ -27,6 +27,9 @@
       --red: #e0453f;
       --red-50: #fdecec;
 
+      --amber: #b45309;
+      --amber-50: #fef5e7;
+
       --slate: #9aa1ac;
       --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
       --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -214,20 +217,97 @@
 
     .panel-transcript-body { padding: 0 22px 22px; min-height: 420px; }
 
-    /* ---------- summary strip ---------- */
-    .summary-strip { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    @media (max-width: 560px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
-    .metric { border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 10px 12px; background: #fcfcfd; }
-    .metric .k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
-    .metric .v { font-size: 14px; font-weight: 700; margin-top: 3px; line-height: 1.3; }
-    .metric .v.ok { color: var(--green); }
-    .metric .v.no { color: var(--red); }
-    .metric .d { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
-    .metric .heuristic-tag {
-      display: inline-block; margin-left: 5px; font-size: 9px; font-weight: 600; letter-spacing: 0.03em;
-      color: var(--text-faint); border: 1px solid var(--border-soft); border-radius: 4px; padding: 1px 4px;
-      vertical-align: middle; cursor: help;
+    /* ---------- header tabs ---------- */
+    .th-right { display: flex; align-items: center; gap: 8px; }
+    .tabs { display: inline-flex; background: #fff; border: 1px solid var(--blue-200); border-radius: 99px; padding: 3px; }
+    .tabs[hidden] { display: none; }
+    .tabs button {
+      border: none; background: transparent; cursor: pointer;
+      font: inherit; font-size: 12.5px; font-weight: 600; color: var(--text-dim);
+      padding: 5px 14px; border-radius: 99px;
+      transition: background 0.15s ease, color 0.15s ease;
     }
+    .tabs button[aria-selected="true"] { background: var(--blue); color: #fff; }
+    .tabs button:focus-visible, button.toggle-btn:focus-visible, .an-quote:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    button.toggle-btn[hidden] { display: none; }
+
+    /* ---------- call analysis ---------- */
+    #analysis { margin-top: 18px; display: flex; flex-direction: column; gap: 12px; animation: msgIn 0.35s var(--ease-smooth); }
+    #analysis[hidden] { display: none; }
+    .an-k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); font-weight: 600; }
+
+    .an-hero { border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; background: #fcfcfd; }
+    .an-hero-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+    .an-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--slate); flex-shrink: 0; align-self: center; }
+    .an-hero-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+    .an-hero-detail { font-size: 14px; color: var(--text-dim); }
+    .an-hero.tone-ok .an-dot { background: var(--green); }
+    .an-hero.tone-info .an-dot { background: var(--blue); }
+    .an-hero.tone-warn .an-dot { background: var(--amber); }
+    .an-hero.tone-bad .an-dot { background: var(--red); }
+    .an-meta { font-size: 12px; color: var(--text-faint); margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+    .an-follow {
+      display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center;
+      margin-top: 14px; padding: 12px 14px; border-radius: var(--radius-md);
+      background: var(--blue-50); border: 1px solid var(--blue-200);
+    }
+    .an-follow.none { background: #f7f8fa; border-color: var(--border-soft); }
+    .an-follow-icon { width: 34px; height: 34px; border-radius: 9px; background: #fff; color: var(--blue); display: flex; align-items: center; justify-content: center; }
+    .an-follow.none .an-follow-icon { color: var(--text-faint); }
+    .an-follow-icon svg { width: 18px; height: 18px; }
+    .an-follow-title { font-size: 14px; font-weight: 700; }
+    .an-follow-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 1px; }
+    @media (max-width: 560px) { .an-follow { grid-template-columns: auto 1fr; } .an-follow .chip { grid-column: 2; justify-self: start; } }
+
+    .chip {
+      display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+      font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 99px;
+      background: #fff; color: var(--text-dim); border: 1px solid var(--border);
+    }
+    .chip.warn { background: var(--amber-50); color: var(--amber); border-color: #f6dfb8; }
+    .chip.bad { background: var(--red-50); color: var(--red); border-color: #f7c9c7; }
+
+    .an-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 900px) { .an-grid { grid-template-columns: 1fr; } }
+    .an-card { border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+
+    .an-sent-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+    .sent-pill { font-size: 13px; font-weight: 700; padding: 4px 11px; border-radius: 99px; background: #f1f2f5; color: var(--text-dim); }
+    .sent-pill.frustrated { background: var(--red-50); color: var(--red); }
+    .sent-pill.positive { background: var(--green-50); color: var(--green); }
+    .sent-pill.neutral { background: #f1f2f5; color: #4b5563; }
+    .an-traj { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-dim); }
+    .an-traj b { font-weight: 600; color: var(--text); }
+    .an-traj .arrow { color: var(--text-faint); }
+    .an-rationale { font-size: 13px; color: var(--text-dim); margin-top: 8px; line-height: 1.45; }
+    .an-quotes { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+    .an-quote {
+      text-align: left; font: inherit; cursor: pointer;
+      border: none; border-left: 2px solid var(--green); background: #f8faf9;
+      padding: 7px 10px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.45; color: var(--text);
+    }
+    .an-quote:hover { background: var(--green-50); }
+    .an-quote .turn { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em; color: var(--text-faint); margin-top: 2px; }
+
+    .an-dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 14px; margin: 10px 0 0; font-size: 13px; }
+    .an-dl dt { color: var(--text-faint); }
+    .an-dl dd { margin: 0; font-weight: 600; }
+    .an-dl dd .sub { display: block; font-weight: 400; font-size: 12px; color: var(--text-dim); margin-top: 1px; }
+    .an-flags { display: flex; flex-wrap: wrap; gap: 6px; }
+    .an-none { color: var(--text-faint); font-weight: 400; }
+
+    .an-summary { font-size: 14px; line-height: 1.55; margin-top: 8px; }
+    .an-foot { font-size: 11.5px; color: var(--text-faint); line-height: 1.5; }
+    .an-note { font-size: 12.5px; color: var(--text-dim); padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--radius-md); }
+
+    @keyframes shimmer { 0% { background-position: -300px 0; } 100% { background-position: 300px 0; } }
+    .skel { border-radius: 6px; background: linear-gradient(90deg, #f1f2f5 0, #e8eaef 50%, #f1f2f5 100%); background-size: 600px 100%; animation: shimmer 1.3s linear infinite; }
+    .skel.line { height: 12px; margin-top: 9px; }
+    .skel.pill { height: 24px; width: 110px; margin-top: 8px; border-radius: 99px; }
+    @media (prefers-reduced-motion: reduce) { .skel, #analysis { animation: none; } }
+
+    .msg.highlight { background: var(--green-50); border-radius: 0 8px 8px 0; transition: background 0.4s ease; }
 
     .live-note { margin-top: 18px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--radius-md); font-size: 12px; color: var(--text-dim); }
 
@@ -389,17 +469,23 @@
         <div class="transcript-head">
           <div class="th-left">
             <span class="dot"></span>
-            <h2>Live transcript</h2>
+            <h2 id="panelTitle">Live transcript</h2>
           </div>
-          <button class="toggle-btn" id="splitBtn" aria-pressed="false" type="button">
-            <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="6" height="12" rx="1.5" fill="currentColor"/><rect x="9" y="2" width="6" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
-            Split view
-          </button>
+          <div class="th-right">
+            <div class="tabs" id="tabs" role="tablist" hidden>
+              <button type="button" role="tab" id="tabAnalysis" aria-selected="true">Analysis</button>
+              <button type="button" role="tab" id="tabTranscript" aria-selected="false">Transcript</button>
+            </div>
+            <button class="toggle-btn" id="splitBtn" aria-pressed="false" type="button">
+              <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="6" height="12" rx="1.5" fill="currentColor"/><rect x="9" y="2" width="6" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+              Split view
+            </button>
+          </div>
         </div>
 
         <div class="panel-transcript-body">
-          <div class="summary-strip" id="summaryStrip" hidden></div>
-          <div class="live-note" id="liveNote" hidden>Call in progress — duration, confirmation, and sentiment will appear here once the call ends.</div>
+          <div class="live-note" id="liveNote" hidden>Call in progress — the call analysis replaces this transcript when the call ends.</div>
+          <div id="analysis" role="tabpanel" aria-labelledby="tabAnalysis" hidden></div>
 
           <div id="feed"></div>
           <div id="split" hidden>
@@ -435,7 +521,11 @@
     const declineBtn = el("declineBtn");
     const endBtn = el("endBtn");
     const splitBtn = el("splitBtn");
-    const summaryStrip = el("summaryStrip");
+    const panelTitle = el("panelTitle");
+    const tabsEl = el("tabs");
+    const tabAnalysis = el("tabAnalysis");
+    const tabTranscript = el("tabTranscript");
+    const analysisEl = el("analysis");
     const liveNote = el("liveNote");
     const feedEl = el("feed");
     const splitEl = el("split");
@@ -476,47 +566,15 @@
       setTimeout(() => declineBtn.classList.remove("shake"), 320);
     });
 
-    // --- outcome labels ---
+    // Only used when the server never returns an analysis (older bot.main
+    // build, or the call never reached the server).
     const OUTCOME_LABELS = {
       promise_to_pay: "Promise to pay",
       already_paid: "Already paid",
       callback_request: "Callback requested",
-      dispute_transfer: "Disputed / transferred",
+      dispute_transfer: "Dispute — transferred",
       no_outcome: "No outcome",
     };
-    function outcomeDetail(outcome) {
-      if (!outcome) return "";
-      switch (outcome.type) {
-        case "promise_to_pay": return [outcome.amount ? `₹${outcome.amount}` : null, outcome.date ? `by ${outcome.date}` : null].filter(Boolean).join(" ");
-        case "already_paid": return [outcome.mode, outcome.date].filter(Boolean).join(" · ");
-        case "callback_request": return outcome.requested_time ? `requested ${outcome.requested_time}` : "";
-        case "dispute_transfer": return outcome.reason || outcome.category || "";
-        case "no_outcome": return outcome.reason || "";
-        default: return "";
-      }
-    }
-    function isConfirmed(outcome) {
-      return !!outcome && outcome.type && outcome.type !== "no_outcome";
-    }
-
-    // --- sentiment heuristic ---
-    // Keyword-based only, computed entirely client-side from the visible transcript.
-    // Not model-graded. See Progress Tracker.md / Execution Plan.md for the real
-    // fix (route the transcript through an LLM judge, same pattern as evals/judge.py).
-    function computeSentimentHeuristic(transcript) {
-      const customerText = transcript.filter((m) => m.role === "user").map((m) => m.text).join(" ").toLowerCase();
-      if (!customerText.trim()) return { label: "No data", note: "Customer did not speak", tone: "neutral" };
-      const distress = ["hospital", "medical", "emergency", "lost my job", "job loss", "passed away", "surgery", "accident", "funeral"];
-      const frustration = ["stupid", "ridiculous", "harass", "sick of", "stop calling", "angry", "furious", "scam", "useless", "worst", "annoyed", "frustrat", "rude"];
-      const cooperative = ["sure", "okay", "thank you", "thanks", "understand", "sorry", "will pay", "i will", "no problem", "alright", "definitely", "of course"];
-      const hit = (list) => list.some((w) => customerText.includes(w));
-      const exclaimCount = (customerText.match(/!/g) || []).length;
-      if (hit(distress)) return { label: "Distressed", note: "Hardship language detected", tone: "distressed" };
-      if (hit(frustration) || exclaimCount >= 3) return { label: "Frustrated", note: "Negative or escalated language", tone: "frustrated" };
-      if (hit(cooperative)) return { label: "Cooperative", note: "Polite, agreeable language", tone: "cooperative" };
-      return { label: "Neutral", note: "No strong signal either way", tone: "neutral" };
-    }
-    const SENTIMENT_CLASS = { cooperative: "ok", distressed: "no", frustrated: "no", neutral: "" };
 
     function fmtTime(ms) {
       const total = Math.max(0, Math.floor(ms / 1000));
@@ -530,8 +588,21 @@
     function newId() {
       return (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
     }
+    function fmtDate(iso, opts = { weekday: "short", day: "numeric", month: "short" }) {
+      const [y, m, d] = iso.split("-").map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString(undefined, opts);
+    }
+    function relativeDay(iso) {
+      const [y, m, d] = iso.split("-").map(Number);
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const days = Math.round((new Date(y, m - 1, d) - today) / 86400000);
+      if (days === 0) return "today";
+      if (days === 1) return "tomorrow";
+      if (days === -1) return "yesterday";
+      return days > 0 ? `in ${days} days` : `${-days} days ago`;
+    }
     function escapeHtml(s) {
-      return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+      return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     }
 
     // --- call record ---
@@ -542,7 +613,9 @@
     let callStartedAt = null;
     let timerInterval = null;
     let liveOutcome = null;
+    let liveCallId = null;
     let connected = false;
+    let activeTab = "analysis"; // after a call ends: "analysis" | "transcript"
 
     function elapsed() { return callStartedAt ? Date.now() - callStartedAt : 0; }
 
@@ -558,8 +631,8 @@
     // --- transcript rendering ---
     function messageHtml(m) {
       const roleLabel = m.role === "user" ? "Customer" : "Mumbai Bank bot";
-      return `<div class="msg ${m.role}${m.pending ? " pending" : ""}">
-        <div class="role">${roleLabel} <span class="t">${fmtTime(m.t)}</span></div>
+      return `<div class="msg ${m.role}${m.pending ? " pending" : ""}" data-idx="${m.idx ?? ""}">
+        <div class="role">${roleLabel}${m.t != null ? ` <span class="t">${fmtTime(m.t)}</span>` : ""}</div>
         <div class="text">${escapeHtml(m.text || "")}</div>
       </div>`;
     }
@@ -571,7 +644,9 @@
       </div>`;
 
     function renderTranscript() {
-      const messages = currentCall ? currentCall.transcript : [];
+      // A late transport event after hangup must not draw the feed over the analysis tab.
+      if (currentCall?.endedAt && activeTab === "analysis") return;
+      const messages = currentCall ? currentCall.transcript.map((m, idx) => ({ ...m, idx })) : [];
 
       if (messages.length === 0) {
         feedEl.innerHTML = EMPTY_STATE_HTML;
@@ -590,40 +665,186 @@
       splitEl.hidden = !splitMode;
     }
 
-    function renderSummary() {
-      const call = currentCall;
-      const live = !!call && !call.endedAt;
+    const CALENDAR_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4.5" width="14" height="12.5" rx="2.5"/><path d="M3 8.5h14M7 2.5v3.5M13 2.5v3.5"/></svg>';
+    const NO_CALL_ICON = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="10" cy="10" r="7"/><path d="M5.5 14.5l9-9"/></svg>';
+    const SENTIMENT_LABELS = { frustrated: "Frustrated", neutral: "Neutral", positive: "Positive", unclear: "Unclear" };
+    const DATE_SOURCE_LABELS = {
+      customer: "Customer's words",
+      promise_date: "Day after promised date",
+      verification_window: "Payment posting window",
+      retry_policy: "Retry policy",
+      default_sla: "Default SLA · no date given",
+    };
+    const OUTCOME_TONE = { promise_to_pay: "ok", already_paid: "ok", callback_request: "info", dispute_transfer: "warn", no_outcome: "bad" };
+    const FLAG_TONE = { abuse_detected: "bad", legal_threat: "bad", guardrail_triggered: "bad", hardship_disclosed: "warn" };
 
-      if (!call || live) {
-        summaryStrip.hidden = true;
-        liveNote.hidden = !call;
+    function prettyDates(text) {
+      return escapeHtml(text || "").replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (iso) => fmtDate(iso, { day: "numeric", month: "short" }));
+    }
+
+    function renderPanel() {
+      const call = currentCall;
+      const ended = !!call && !!call.endedAt;
+
+      liveNote.hidden = !call || ended;
+      tabsEl.hidden = !ended;
+      panelTitle.textContent = ended ? "Call analysis" : "Live transcript";
+      const showAnalysis = ended && activeTab === "analysis";
+      tabAnalysis.setAttribute("aria-selected", String(showAnalysis));
+      tabTranscript.setAttribute("aria-selected", String(ended && !showAnalysis));
+      splitBtn.hidden = showAnalysis;
+      analysisEl.hidden = !showAnalysis;
+
+      if (showAnalysis) {
+        feedEl.hidden = true;
+        splitEl.hidden = true;
+        renderAnalysis();
+      } else {
+        renderTranscript();
+      }
+    }
+
+    function skeletonCard(title) {
+      return `<section class="an-card"><div class="an-k">${title}</div><div class="skel pill"></div><div class="skel line" style="width:92%"></div><div class="skel line" style="width:70%"></div></section>`;
+    }
+
+    function renderAnalysis() {
+      const call = currentCall;
+      const a = call.analysis;
+      const customerTurns = call.transcript.filter((m) => m.role === "user").length;
+      const meta = `${fmtTime(call.durationMs ?? 0)} call · ${customerTurns} customer turn${customerTurns === 1 ? "" : "s"}`;
+
+      if (!a || !a.workflow) {
+        if (!call.analysisGaveUp) {
+          analysisEl.innerHTML = `
+            <section class="an-hero"><div class="an-k">Outcome</div><div class="skel line" style="width:45%;height:20px"></div><div class="skel line" style="width:30%"></div></section>
+            <div class="an-grid">${skeletonCard("Customer sentiment")}${skeletonCard("Workflow")}</div>`;
+          return;
+        }
+        // Server never answered: show what the client itself knows, and say so.
+        const o = call.outcome ?? { type: "no_outcome" };
+        analysisEl.innerHTML = `
+          <section class="an-hero tone-${OUTCOME_TONE[o.type] ?? "bad"}">
+            <div class="an-k">Outcome</div>
+            <div class="an-hero-row"><span class="an-dot"></span><span class="an-hero-title">${OUTCOME_LABELS[o.type] ?? escapeHtml(o.type)}</span></div>
+            <div class="an-meta">${meta}</div>
+          </section>
+          <div class="an-note">Analysis unavailable — the server didn't return one for this call. Restart <code>bot.main</code> if it predates the post-call analysis.</div>`;
         return;
       }
 
-      liveNote.hidden = true;
-      summaryStrip.hidden = false;
-      const confirmed = isConfirmed(call.outcome);
-      const outcomeLabel = call.outcome ? (OUTCOME_LABELS[call.outcome.type] ?? call.outcome.type) : "Unknown";
-      const detail = outcomeDetail(call.outcome);
-      const sentiment = call.sentiment ?? { label: "—", note: "", tone: "neutral" };
-      const sentimentClass = SENTIMENT_CLASS[sentiment.tone] ?? "";
-      const customerTurns = call.transcript.filter((m) => m.role === "user").length;
-      const botTurns = call.transcript.filter((m) => m.role === "bot").length;
+      const wf = a.workflow;
+      const fu = wf.follow_up;
+      const followHtml = fu.needed
+        ? `<div class="an-follow">
+             <div class="an-follow-icon">${CALENDAR_ICON}</div>
+             <div><div class="an-follow-title">Follow-up ${fu.date ? `· ${fmtDate(fu.date)} <span class="an-none">(${relativeDay(fu.date)})</span>` : ""}</div><div class="an-follow-sub">${escapeHtml(fu.reason)}</div></div>
+             <span class="chip ${fu.date_source === "default_sla" ? "warn" : ""}">${DATE_SOURCE_LABELS[fu.date_source] ?? ""}</span>
+           </div>`
+        : `<div class="an-follow none">
+             <div class="an-follow-icon">${NO_CALL_ICON}</div>
+             <div><div class="an-follow-title">No follow-up call</div><div class="an-follow-sub">${escapeHtml(fu.reason)}</div></div>
+           </div>`;
 
-      summaryStrip.innerHTML = `
-        <div class="metric"><div class="k">Duration</div><div class="v">${fmtTime(call.durationMs ?? 0)}</div></div>
-        <div class="metric"><div class="k">Confirmation</div><div class="v ${confirmed ? "ok" : "no"}">${confirmed ? "Confirmed" : "Not confirmed"}</div><div class="d">${outcomeLabel}${detail ? " · " + escapeHtml(detail) : ""}</div></div>
-        <div class="metric"><div class="k">Sentiment<span class="heuristic-tag" title="Keyword-based heuristic, not model-graded. See Progress Tracker.md.">heuristic</span></div><div class="v ${sentimentClass}">${sentiment.label}</div><div class="d">${sentiment.note}</div></div>
-        <div class="metric"><div class="k">Turns</div><div class="v">${customerTurns + botTurns}</div><div class="d">${customerTurns} customer · ${botTurns} bot</div></div>
-      `;
+      const flagsHtml = wf.flags.length
+        ? `<div class="an-flags">${wf.flags.map((f) => `<span class="chip ${FLAG_TONE[f.key] ?? ""}">${escapeHtml(f.label)}</span>`).join("")}</div>`
+        : `<span class="an-none">None</span>`;
+
+      let sentimentHtml;
+      const sent = a.sentiment;
+      if (a.status === "pending") {
+        sentimentHtml = `<div class="skel pill"></div><div class="skel line" style="width:92%"></div><div class="skel line" style="width:70%"></div>`;
+      } else if (!sent) {
+        sentimentHtml = `<div class="an-rationale">Sentiment analysis failed for this call. Outcome, follow-up and stage above are unaffected.</div>`;
+      } else {
+        const traj = sent.start !== sent.end
+          ? `<span class="an-traj"><b>${SENTIMENT_LABELS[sent.start]}</b><span class="arrow">→</span><b>${SENTIMENT_LABELS[sent.end]}</b></span>`
+          : `<span class="an-traj">Steady through the call</span>`;
+        const quotes = sent.evidence.map((e) =>
+          `<button type="button" class="an-quote" data-quote="${escapeHtml(e.quote)}">“${escapeHtml(e.quote)}”<span class="turn">Turn ${e.turn + 1} · show in transcript</span></button>`
+        ).join("");
+        sentimentHtml = `
+          <div class="an-sent-row"><span class="sent-pill ${sent.overall}">${SENTIMENT_LABELS[sent.overall]}</span>${traj}</div>
+          <div class="an-rationale">${escapeHtml(sent.rationale)}</div>
+          ${quotes ? `<div class="an-quotes">${quotes}</div>` : ""}`;
+      }
+
+      const summaryHtml = a.status === "pending"
+        ? `<div class="skel line" style="width:96%"></div><div class="skel line" style="width:88%"></div>`
+        : sent ? `<div class="an-summary">${escapeHtml(sent.summary)}</div>` : `<div class="an-rationale">Unavailable.</div>`;
+
+      analysisEl.innerHTML = `
+        <section class="an-hero tone-${OUTCOME_TONE[wf.outcome.type] ?? "bad"}">
+          <div class="an-k">Outcome</div>
+          <div class="an-hero-row"><span class="an-dot"></span><span class="an-hero-title">${escapeHtml(wf.outcome.label)}</span><span class="an-hero-detail">${prettyDates(wf.outcome.detail)}</span></div>
+          <div class="an-meta">${meta}</div>
+          ${followHtml}
+        </section>
+        <div class="an-grid">
+          <section class="an-card"><div class="an-k">Customer sentiment</div>${sentimentHtml}</section>
+          <section class="an-card">
+            <div class="an-k">Workflow</div>
+            <dl class="an-dl">
+              <dt>Stage</dt><dd>${escapeHtml(wf.stage.label)}${wf.stage.overridden_from ? `<span class="sub">Outcome alone would have been: ${escapeHtml(wf.stage.overridden_from)}</span>` : ""}</dd>
+              <dt>Routed to</dt><dd>${escapeHtml(wf.stage.team)}</dd>
+              <dt>Flags</dt><dd>${flagsHtml}</dd>
+            </dl>
+          </section>
+        </div>
+        <section class="an-card"><div class="an-k">Summary</div>${summaryHtml}</section>
+        <div class="an-foot">Sentiment and summary by ${escapeHtml(sent?.model ?? "gpt-4o")}, with quotes checked against the transcript. Outcome, follow-up and stage come from fixed rules on the recorded outcome, not the model.${call.callId ? ` · <a href="?call=${encodeURIComponent(call.callId)}">Link to this call</a>` : ""}</div>`;
     }
 
-    function renderAll() { renderSummary(); renderTranscript(); }
+    function normQuote(t) { return t.toLowerCase().replace(/[^\w\s']/g, " ").replace(/\s+/g, " ").trim(); }
+
+    analysisEl.addEventListener("click", (e) => {
+      const btn = e.target.closest(".an-quote");
+      if (!btn) return;
+      const q = normQuote(btn.dataset.quote);
+      const idx = currentCall.transcript.findIndex((m) => m.role === "user" && normQuote(m.text || "").includes(q));
+      setTab("transcript");
+      if (idx < 0) return;
+      const node = (splitMode ? colCustomerEl : feedEl).querySelector(`.msg[data-idx="${idx}"]`);
+      if (!node) return;
+      node.scrollIntoView({ block: "center", behavior: "smooth" });
+      node.classList.add("highlight");
+      setTimeout(() => node.classList.remove("highlight"), 2200);
+    });
+
+    function setTab(tab) { activeTab = tab; renderPanel(); }
+    tabAnalysis.addEventListener("click", () => setTab("analysis"));
+    tabTranscript.addEventListener("click", () => setTab("transcript"));
+
+    // Polls the server for this call's analysis. The data channel is gone by
+    // the time the call ends, so this is a plain HTTP fetch keyed by the
+    // call_id the bot sent in its "call-started" message.
+    async function loadAnalysis(call) {
+      const deadline = Date.now() + 25000;
+      while (Date.now() < deadline && currentCall === call) {
+        if (call.callId) {
+          try {
+            const r = await fetch(`/api/calls/${encodeURIComponent(call.callId)}/analysis`);
+            if (r.ok) {
+              call.analysis = await r.json();
+              if (currentCall === call) renderPanel();
+              if (call.analysis.status !== "pending") return;
+            }
+          } catch { /* server restarting — keep trying until the deadline */ }
+        }
+        await new Promise((res) => setTimeout(res, 1000));
+      }
+      if (currentCall === call && (!call.analysis || call.analysis.status === "pending")) {
+        call.analysisGaveUp = true;
+        renderPanel();
+      }
+    }
+
+    function renderAll() { renderPanel(); }
 
     splitBtn.addEventListener("click", () => {
       splitMode = !splitMode;
       splitBtn.setAttribute("aria-pressed", String(splitMode));
-      renderTranscript();
+      renderPanel();
     });
 
     function showError(text) { errorBanner.textContent = text; errorBanner.classList.add("show"); }
@@ -700,7 +921,9 @@
             // same semantics as bot/main.py's own forced no_outcome fallback
             // on an unrecorded hangup (see on_client_disconnected there).
             currentCall.outcome = liveOutcome ?? { type: "no_outcome", reason: "call ended without a recorded outcome" };
-            currentCall.sentiment = computeSentimentHeuristic(currentCall.transcript);
+            currentCall.callId = liveCallId;
+            activeTab = "analysis";
+            loadAnalysis(currentCall);
           }
 
           setCallScreenState("ended");
@@ -758,6 +981,7 @@
           // server builds never send this, in which case onDisconnected's
           // no_outcome fallback above covers it.
           if (data?.type === "call-outcome") liveOutcome = data.outcome;
+          if (data?.type === "call-started") liveCallId = data.call_id;
         },
         onTrackStarted: (track, participant) => {
           if (track.kind !== "audio") return;
@@ -777,8 +1001,10 @@
 
     acceptBtn.addEventListener("click", async () => {
       clearError();
-      currentCall = { id: newId(), startedAt: Date.now(), transcript: [], outcome: null, sentiment: null, durationMs: 0, endedAt: null };
+      currentCall = { id: newId(), startedAt: Date.now(), transcript: [], outcome: null, callId: null, analysis: null, analysisGaveUp: false, durationMs: 0, endedAt: null };
       liveOutcome = null;
+      liveCallId = null;
+      activeTab = "analysis";
       pendingUser = null;
       pendingBot = null;
       splitMode = false;
@@ -799,7 +1025,27 @@
       endBtn.disabled = false;
     });
 
+    // ?call=<call_id> reopens a saved call's analysis (data/calls/), so a
+    // reviewer can link straight to one instead of replaying it.
+    async function openSavedCall(id) {
+      const r = await fetch(`/api/calls/${encodeURIComponent(id)}/analysis`).catch(() => null);
+      if (!r || !r.ok) { showError(`No saved analysis for call ${id}.`); return; }
+      const a = await r.json();
+      const rec = a.record;
+      currentCall = {
+        id, callId: id, startedAt: Date.parse(rec.started_at) || Date.now(),
+        transcript: rec.transcript.map((t) => ({ role: t.role === "customer" ? "user" : "bot", text: t.text })),
+        outcome: rec.outcome, analysis: a, analysisGaveUp: false,
+        durationMs: (rec.duration_sec ?? 0) * 1000, endedAt: Date.now(),
+      };
+      activeTab = "analysis";
+      renderAll();
+      if (a.status === "pending") loadAnalysis(currentCall);
+    }
+
     renderAll();
+    const savedCallId = new URLSearchParams(location.search).get("call");
+    if (savedCallId) openSavedCall(savedCallId);
   </script>
 </body>
 </html>

@@ -10,6 +10,7 @@ Run with:
     uv run bot/main.py
 """
 
+import asyncio
 import json
 import os
 import time
@@ -19,6 +20,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from loguru import logger
+from openai import AsyncOpenAI
 from pipecat.adapters.llm.schemas.function_schema import FunctionSchema
 from pipecat.adapters.llm.schemas.tools_schema import ToolsSchema
 from pipecat.audio.vad.silero import SileroVADAnalyzer
@@ -40,7 +42,7 @@ from pipecat.services.openai.tts import OpenAITTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.workers.runner import WorkerRunner
 
-from bot import guardrails
+from bot import analysis, guardrails
 from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt
 from bot.schema import validate_outcome
 from bot.state import CallState
@@ -68,6 +70,7 @@ class GuardrailProcessor(FrameProcessor):
         self._buffering = False
         self._buffer = ""
         self._start_frame: LLMFullResponseStartFrame | None = None
+        self.triggers: list[dict] = []  # read by the post-call analysis
 
     async def process_frame(self, frame: Frame, direction: FrameDirection):
         await super().process_frame(frame, direction)
@@ -97,6 +100,7 @@ class GuardrailProcessor(FrameProcessor):
                 )
                 if result.triggered:
                     logger.warning(f"L4 guardrail triggered: {result.rule} — substituting safe line")
+                    self.triggers.append({"turn": self._state.turn_count, "rule": result.rule, "action": "substituted"})
                     text = result.safe_text
 
             if start_frame is not None:
@@ -139,6 +143,10 @@ CUSTOMERS = json.loads((Path(__file__).parent / "fixtures" / "customers.json").r
 
 RECORDINGS_DIR = Path(__file__).resolve().parent.parent / "recordings" / "audio"
 
+# Post-call analyses run after the pipeline is torn down, so they're held
+# here rather than on the call's own tasks (and kept referenced until done).
+_analysis_tasks: set[asyncio.Task] = set()
+
 
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> None:
     logger.info(f"Starting bot — prompt_version={PROMPT_VERSION}, customer={CUSTOMER_ID}")
@@ -176,7 +184,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
 
     call_started_at = time.time()
     call_started_at_iso = datetime.now(timezone.utc).isoformat()
-    call_state = {"outcome_recorded": False, "outcome_retries": 0}
+    call_state = {"outcome_recorded": False, "outcome_retries": 0, "outcome": None}
     call_state_machine = CallState()
 
     def base_payload(outcome: dict) -> dict:
@@ -205,6 +213,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
 
         logger.info(f"record_outcome: {args}")
         call_state["outcome_recorded"] = True
+        call_state["outcome"] = args
         await post_outcome(base_payload(args))
         # Client-side console (client/index.html) needs this to show a real
         # confirmation/outcome badge instead of guessing from transcript text.
@@ -269,8 +278,10 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         pipeline_steps.append(StateWatcher(call_state_machine, context, customer))
     pipeline_steps.append(user_aggregator)
     pipeline_steps.append(llm)
+    guardrail_processor = None
     if customer is not None:
-        pipeline_steps.append(GuardrailProcessor(call_state_machine, customer))
+        guardrail_processor = GuardrailProcessor(call_state_machine, customer)
+        pipeline_steps.append(guardrail_processor)
     pipeline_steps += [
         tts,
         audio_recorder,
@@ -291,6 +302,9 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
 
     @worker.rtvi.event_handler("on_client_ready")
     async def on_client_ready(rtvi):
+        # The console needs this id to fetch the post-call analysis once the
+        # data channel is gone (GET /api/calls/{call_id}/analysis).
+        await worker.rtvi.send_server_message({"type": "call-started", "call_id": runner_args.session_id})
         context.add_message(
             {"role": "developer", "content": "The call has connected. Begin the call now."}
         )
@@ -310,9 +324,22 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
             # transport layer — not the LLM — guarantees a record exists.
             logger.warning("Call ended with no outcome recorded — forcing no_outcome")
             call_state["outcome_recorded"] = True
-            await post_outcome(
-                base_payload({"type": "no_outcome", "reason": "call ended without a recorded outcome"})
-            )
+            call_state["outcome"] = {"type": "no_outcome", "reason": "call ended without a recorded outcome"}
+            await post_outcome(base_payload(call_state["outcome"]))
+
+        record = base_payload(call_state["outcome"])
+        record.update(
+            signals=sorted(call_state_machine.signals),
+            identity_confirmed=call_state_machine.identity_confirmed,
+            identity_denied=call_state_machine.identity_denied,
+            guardrail_triggers=guardrail_processor.triggers if guardrail_processor else [],
+            transcript=analysis.transcript_from_context(context.get_messages()),
+        )
+        task = asyncio.create_task(
+            analysis.run_analysis(AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY")), record)
+        )
+        _analysis_tasks.add(task)
+        task.add_done_callback(_analysis_tasks.discard)
         await runner.cancel()
 
     await runner.run()
@@ -328,6 +355,7 @@ async def bot(runner_args: RunnerArguments):
 
 
 if __name__ == "__main__":
+    from fastapi import HTTPException
     from fastapi.responses import FileResponse
 
     from pipecat.runner.run import app as runner_app
@@ -338,5 +366,12 @@ if __name__ == "__main__":
     @runner_app.get("/", include_in_schema=False)
     async def _serve_client():
         return FileResponse(client_dir / "index.html")
+
+    @runner_app.get("/api/calls/{call_id}/analysis", include_in_schema=False)
+    async def _call_analysis(call_id: str):
+        entry = analysis.get_analysis(call_id)
+        if entry is None:
+            raise HTTPException(status_code=404, detail="unknown call")
+        return entry
 
     main()

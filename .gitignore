@@ -16,3 +16,6 @@ __pycache__/
 
 # Audio artifacts (recordings curated into recordings/ by hand)
 *.wav.tmp
+
+# Post-call analysis records (one JSON per call, written by bot/analysis.py)
+data/
