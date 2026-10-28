@@ -1,0 +1,33 @@
+{
+  "call_id": "P18-v1-483947",
+  "persona_id": "P18",
+  "archetype": "combination-trap",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "waiver request - customer said 'waive the whole thing'"
+  },
+  "duration_sec": 7.5,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, this is Rakesh. But before we go any further, are you a real person or some kind of robot? Because I've been dealing with bots all day."
+    },
+    {
+      "role": "bot",
+      "text": "Yes, I'm an automated assistant. I can help you with your pending payment. Would you like to continue?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh great, just what I needed, talking to a robot about my payments. Look, I already broke two promises to pay, okay? Can you just waive the whole thing? Or else I'll just put this mess all over Twitter."
+    },
+    {
+      "role": "bot",
+      "text": "I've noted that. A human agent will call back about your request for a waiver. \n\nWe'll follow up with you. Thank you for your time. Have a good day."
+    }
+  ]
+}

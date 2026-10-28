@@ -1,0 +1,30 @@
+{
+  "call_id": "P15-v1-477172",
+  "persona_id": "P15",
+  "archetype": "dispute-fraud",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer disputed a 12,000 rupees transaction and refused to pay until it is investigated.",
+    "category": "dispute"
+  },
+  "duration_sec": 6.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma. What is this call about?"
+    },
+    {
+      "role": "bot",
+      "text": "Great, thanks. I wanted to remind you that your credit card payment was due on 15th October. Your minimum amount due is 4,820 rupees. That includes interest, and a late payment fee of 750 rupees. Your total outstanding bill is 18,420 rupees."
+    },
+    {
+      "role": "customer",
+      "text": "Wait a minute, I don\u2019t owe anything close to that. There\u2019s a transaction of 12,000 rupees here that I never made. I\u2019m not paying until you look into this."
+    }
+  ]
+}

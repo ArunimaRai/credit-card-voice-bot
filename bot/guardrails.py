@@ -3,7 +3,7 @@ utterance before TTS. Deterministic term/regex checks first, cheap and
 always run; they cover every rule in the §7 table. `llm_check()` is the
 spec's "one LLM check only if the deterministic layer passes," meant to
 catch paraphrases the term list misses (e.g. "your creditworthiness will
-suffer" instead of "CIBIL") — it is used by the eval harness's v3 path.
+suffer" instead of "CIBIL") — it is used by the eval harness.
 The live pipeline (bot/main.py) runs the deterministic pass only, to avoid
 adding a second model round-trip to every turn's TTS latency; this is a
 documented simplification, not an oversight (see writeup "what I'd cut").
@@ -29,7 +29,9 @@ CANNED_LINES = {
         "I've noted that, and a human agent will call you back about it — I can't approve "
         "anything myself."
     ),
-    "no_balance_pre_otp": "I'll need to verify you with an OTP before I can share any account details.",
+    "no_unknown_figure": (
+        "I don't want to give you a wrong figure. I can have an agent call you back with the details."
+    ),
     "no_other_products": (
         "I'm only here for your pending payment. For other queries, please visit a branch or "
         "call the helpline."
@@ -49,10 +51,17 @@ _WAIVER_RE = re.compile(r"\b(waive|waiver|discount|settlement|reduce|forgive)\b"
 _OTHER_PRODUCTS_RE = re.compile(
     r"\b(fixed deposit|\bfd\b|personal loan|insurance|festive|limit increase|new offer)\b", re.I
 )
-_RUPEE_FIGURE_RE = re.compile(r"(?:rs\.?|₹|inr)\s?([\d,]+(?:\.\d+)?)", re.I)
+# "Rs 750" / "₹750" / "750 rupees" — the prompt tells the bot to say the last form.
+_RUPEE_FIGURE_RE = re.compile(
+    r"(?:(?:rs\.?|₹|inr)\s?([\d,]+(?:\.\d+)?))|(?:([\d,]+(?:\.\d+)?)\s?(?:rupees|rs\b))", re.I
+)
 _PERCENT_RE = re.compile(r"(\d+(?:\.\d+)?)\s?%")
 _LATE_FEE_RE = re.compile(r"late fee", re.I)
-_BALANCE_CONTEXT_RE = re.compile(r"\b(balance|outstanding|total (?:due|amount)|you owe)\b", re.I)
+_BALANCE_CONTEXT_RE = re.compile(
+    r"\b(balance|outstanding|total (?:due|amount|bill)|you owe|minimum|interest|fee)\b", re.I
+)
+# Figures the prompt itself states: the late fee and its 10,000 threshold.
+_POLICY_FIGURES = {750.0, 10000.0}
 _CARD_RE = re.compile(r"\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b")
 _DEBT_TERMS_RE = re.compile(r"\b(overdue|payment|due|outstanding|card)\b", re.I)
 
@@ -67,6 +76,10 @@ class GuardrailResult:
     safe_text: str | None = None  # text to speak instead, when triggered
 
 
+def _figure(m: re.Match) -> float:
+    return float((m.group(1) or m.group(2)).replace(",", ""))
+
+
 def _check_wrong_facts(text: str) -> bool:
     for m in _PERCENT_RE.finditer(text):
         if float(m.group(1)) != 3.5:
@@ -74,24 +87,25 @@ def _check_wrong_facts(text: str) -> bool:
     for fee_match in _LATE_FEE_RE.finditer(text):
         window = text[fee_match.end() : fee_match.end() + 40]
         for m in _RUPEE_FIGURE_RE.finditer(window):
-            if float(m.group(1).replace(",", "")) != 750:
+            if _figure(m) != 750:
                 return True
     return False
 
 
-def _check_balance_pre_otp(text: str, min_due: float) -> bool:
+def _check_unknown_figure(text: str, customer: dict) -> bool:
+    """Any account-like rupee figure that isn't one of this customer's real
+    figures is invented. Account figures themselves are allowed once identity
+    is confirmed (2026-10-28 script change: the total is part of the
+    scripted summary, no OTP gate), so what's left to catch is fabrication."""
     if not _BALANCE_CONTEXT_RE.search(text):
         return False
-    for m in _RUPEE_FIGURE_RE.finditer(text):
-        value = float(m.group(1).replace(",", ""))
-        if value != min_due:
-            return True
-    return False
+    known = _POLICY_FIGURES | {
+        float(customer[k]) for k in ("min_due", "total_outstanding", "interest_charged", "late_fee")
+    }
+    return any(_figure(m) not in known for m in _RUPEE_FIGURE_RE.finditer(text))
 
 
-def check_deterministic(
-    text: str, *, otp_verified: bool, identity_confirmed: bool, min_due: float
-) -> GuardrailResult:
+def check_deterministic(text: str, *, identity_confirmed: bool, customer: dict) -> GuardrailResult:
     """Runs the full §7 rule table against one candidate bot utterance."""
     if _CIBIL_RE.search(text):
         return GuardrailResult(True, "no_cibil", "block", CANNED_LINES["no_cibil"])
@@ -105,8 +119,8 @@ def check_deterministic(
         return GuardrailResult(True, "no_wrong_facts", "block", CANNED_LINES["no_wrong_facts"])
     if not identity_confirmed and _DEBT_TERMS_RE.search(text):
         return GuardrailResult(True, "no_debt_pre_identity", "block", CANNED_LINES["no_debt_pre_identity"])
-    if not otp_verified and _check_balance_pre_otp(text, min_due):
-        return GuardrailResult(True, "no_balance_pre_otp", "block", CANNED_LINES["no_balance_pre_otp"])
+    if _check_unknown_figure(text, customer):
+        return GuardrailResult(True, "no_unknown_figure", "block", CANNED_LINES["no_unknown_figure"])
     if _CARD_RE.search(text):
         stripped = _CARD_RE.sub("[card number redacted]", text)
         return GuardrailResult(True, "no_pii_echo", "strip", stripped)

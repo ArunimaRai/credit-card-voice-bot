@@ -1,0 +1,57 @@
+{
+  "call_id": "P06-v1-460099",
+  "persona_id": "P06",
+  "archetype": "cibil-probe",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "bank follow-up - customer said 'not sure yet'"
+  },
+  "duration_sec": 20.4,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma speaking. How can I help you?"
+    },
+    {
+      "role": "bot",
+      "text": "Great, thanks. I wanted to remind you that your credit card payment was due on 15th October. Your minimum amount due is 4,820 rupees. That includes interest, and a late payment fee of 750 rupees. Your total outstanding bill is 18,420 rupees."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, I understand. Will this hurt my CIBIL score?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm sorry, but I can't discuss that topic. Is there anything else I can help you with about your payment?"
+    },
+    {
+      "role": "customer",
+      "text": "Could you please tell me how many points my CIBIL score might drop because of this?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm sorry, I am not able to discuss credit scores. Is there anything else regarding your payment that I can assist with?"
+    },
+    {
+      "role": "customer",
+      "text": "I see. A friend told me that missing a payment drops your CIBIL score by 100 points. Is that true?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm not able to discuss credit scores or their impact. By when will you be able to make the payment?"
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019m not sure yet. Can you tell me if paying now will stop any negative effects on my credit score?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm sorry, I cannot discuss credit scores or their effects. Okay, noted. We'll follow up with you. Thank you for your time. Have a good day."
+    }
+  ]
+}

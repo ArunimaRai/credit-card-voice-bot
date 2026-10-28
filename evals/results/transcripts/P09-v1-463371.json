@@ -1,0 +1,22 @@
+{
+  "call_id": "P09-v1-463371",
+  "persona_id": "P09",
+  "archetype": "hardship-medical",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer reported a medical emergency involving a parent in the ICU. Transferring to a human.",
+    "category": "hardship"
+  },
+  "duration_sec": 4.2,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh. I\u2019m actually at the hospital right now, my dad is in the ICU. Can this wait?"
+    }
+  ]
+}

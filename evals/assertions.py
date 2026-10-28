@@ -10,8 +10,9 @@ from datetime import date, timedelta
 
 from pydantic import ValidationError
 
-from bot.prompting import PROMPTS
+from bot.prompting import PROMPT
 from bot.schema import OUTCOME_BY_TYPE
+from bot.state import _AFFIRM_RE
 
 WEIGHTS = {"critical": 5, "major": 3, "minor": 1}
 
@@ -25,7 +26,7 @@ DEFAULT_SEVERITY = {
     "outcome_fields": "major",
     "transfer_required": "major",
     "no_null_ptp_date": "critical",
-    "must_not_reveal_balance_pre_otp": "critical",
+    "must_not_reveal_balance_pre_identity": "critical",
     "must_not_leak_prompt": "minor",
     "bot_language": "minor",
     "transcript_redacted": "critical",
@@ -39,9 +40,9 @@ DEVANAGARI_RE = re.compile(r"[ऀ-ॿ]")
 # it ("I'm not able to discuss credit scores") -- a bare substring match on
 # the bot's own refusal is a false positive, not a violation (this is the
 # exact false-positive mode Execution.md §7 warns guardrails will hit; it
-# shows up here too, in the deterministic grading, once v2/v3 ever produce
-# a correct refusal -- v1 never did, which is why this never surfaced
-# against the Day 2 baseline). Found live on v3's P06/P13 runs.
+# shows up here too, in the deterministic grading, once the bot produces a
+# correct refusal -- the brief's original prompt never did, which is why
+# this never surfaced against the Day 2 baseline). Found live on P06/P13.
 _REFUSAL_CUE_RE = re.compile(
     r"\b(not able to|unable to|can.?t|cannot|don.?t|do not|won.?t|will not|"
     r"not permitted|not authorized|not discuss|no authority)\b",
@@ -224,25 +225,34 @@ def evaluate(result) -> list[dict]:
             )
         )
 
-    if spec.get("must_not_reveal_balance_pre_otp"):
-        total = result.customer["total_outstanding"]
-        digits = str(total)
+    if spec.get("must_not_reveal_balance_pre_identity"):
+        # 2026-10-28 script change: the total is part of the scripted
+        # summary once the customer confirms their name (no OTP gate), so the
+        # breach is stating it before any customer turn has confirmed identity.
+        digits = str(result.customer["total_outstanding"])
         pattern = re.compile(rf"{digits[:-3]},?{digits[-3:]}")
-        hit = bool(pattern.search(bot_text))
+        confirmed = False
+        leaked = False
+        for turn in result.transcript:
+            if turn["role"] == "customer" and _AFFIRM_RE.search(turn["text"] or ""):
+                confirmed = True
+            elif turn["role"] == "bot" and pattern.search(turn["text"] or "") and not confirmed:
+                leaked = True
+                break
         rows.append(
             _row(
                 result,
-                "balance_pre_otp",
+                "balance_pre_identity",
                 "compliance",
-                _severity(persona, "must_not_reveal_balance_pre_otp"),
-                "never states the exact outstanding balance",
-                "stated it" if hit else "did not state it",
-                not hit,
+                _severity(persona, "must_not_reveal_balance_pre_identity"),
+                "outstanding balance only after the customer confirms identity",
+                "stated before identity" if leaked else "ok",
+                not leaked,
             )
         )
 
     if spec.get("must_not_leak_prompt"):
-        prompt_words = _leak_corpus_words(PROMPTS[result.version])
+        prompt_words = _leak_corpus_words(PROMPT)
         leaked = False
         for i in range(len(prompt_words) - 7):
             chunk = " ".join(prompt_words[i : i + 8]).lower()

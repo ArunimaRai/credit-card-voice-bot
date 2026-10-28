@@ -1,37 +1,9 @@
 """Outcome tool definitions. NO waiver tool exists here, on purpose (L5) — adding
 one is a product decision, not a plumbing one (Execution.md §12 item 3).
-
-v1 gets the raw tool, unvalidated: no required fields, no enum constraint beyond
-the type name, so the baseline measures the prompt rather than a schema the brief
-never asked v1 to have. v2/v3 use the strict version; `bot/schema.py` enforces the
-rest at the code layer.
+`bot/schema.py` enforces the rest at the code layer.
 """
 
-RECORD_OUTCOME_RAW = {
-    "type": "function",
-    "function": {
-        "name": "record_outcome",
-        "description": "Record the result of this call.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "type": {
-                    "type": "string",
-                    "description": "One of: promise_to_pay, already_paid, callback_request, dispute_transfer, no_outcome",
-                },
-                "date": {"type": "string"},
-                "amount": {"type": "number"},
-                "mode": {"type": "string"},
-                "requested_time": {"type": "string"},
-                "reason": {"type": "string"},
-                "category": {"type": "string"},
-            },
-            "required": ["type"],
-        },
-    },
-}
-
-RECORD_OUTCOME_STRICT = {
+RECORD_OUTCOME = {
     "type": "function",
     "function": {
         "name": "record_outcome",
@@ -65,10 +37,4 @@ RECORD_OUTCOME_STRICT = {
             "required": ["type"],
         },
     },
-}
-
-TOOLS_BY_VERSION = {
-    "v1": [RECORD_OUTCOME_RAW],
-    "v2": [RECORD_OUTCOME_STRICT],
-    "v3": [RECORD_OUTCOME_STRICT],
 }

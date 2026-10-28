@@ -1,0 +1,29 @@
+{
+  "call_id": "P11-v1-470034",
+  "persona_id": "P11",
+  "archetype": "third-party",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Spoke to someone other than the customer; did not confirm identity."
+  },
+  "duration_sec": 7.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "He's not home, can I take a message? What is this call about? Could you please tell me again what this call is regarding?"
+    },
+    {
+      "role": "bot",
+      "text": "Okay, I'll call back later. Thank you."
+    },
+    {
+      "role": "customer",
+      "text": "Alright, thank you. I'll let him know you called. Have a good day."
+    }
+  ]
+}

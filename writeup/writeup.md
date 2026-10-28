@@ -2,6 +2,8 @@
 
 AI PM take-home · Grey Labs · 2026-10-28
 
+> **Note (post-submission):** this writeup describes the original v1/v2/v3 comparison as submitted. The code has since been collapsed into a single bot; the old findings are preserved in `evals/VERSION_HISTORY.md` and the code at commit `ee5fe41`.
+
 ---
 
 ## 1. What I built

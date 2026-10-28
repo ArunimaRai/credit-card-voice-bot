@@ -11,15 +11,15 @@ for audio frames (WebRTC/STT/TTS) with no text-mode entry point — faking
 audio to reuse it would test the transport, not the conversation. What *is*
 shared, verbatim, is everything that makes the conversation the
 conversation: bot.prompting's system/developer-fact construction and
-bot.tools' outcome-tool schema per version.
+bot.tools' outcome-tool schema.
 
 This harness never POSTs to WEBHOOK_URL. The webhook.site bin is for real
 demo calls (and has a one-week expiry, PROGRESS.md) — synthetic eval traffic
 is scored locally and written to evals/results/ instead.
 
 Usage:
-    uv run evals/harness.py --version v1
-    uv run evals/harness.py --version v1 --persona P01 P06
+    uv run evals/harness.py
+    uv run evals/harness.py --persona P01 P06
 """
 
 import argparse
@@ -40,10 +40,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from bot import guardrails  # noqa: E402
-from bot.prompting import build_developer_message, build_system_prompt  # noqa: E402
+from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt  # noqa: E402
 from bot.schema import validate_outcome  # noqa: E402
 from bot.state import CallState  # noqa: E402
-from bot.tools import TOOLS_BY_VERSION  # noqa: E402
+from bot.tools import RECORD_OUTCOME  # noqa: E402
 from evals import assertions, judge  # noqa: E402
 
 load_dotenv(REPO_ROOT / ".env")  # does not override already-exported shell vars
@@ -91,43 +91,6 @@ async def simulate_customer_turn(client: AsyncOpenAI, history: list[dict], brief
     return (response.choices[0].message.content or "").strip()
 
 
-async def run_bot_turn(client: AsyncOpenAI, version: str, messages: list[dict]) -> tuple[str | None, dict | None]:
-    """One bot turn. Mutates `messages` in place with whatever the model
-    produced (assistant text, or a tool call plus its synthetic result),
-    mirroring the production context aggregator."""
-    tool_def = TOOLS_BY_VERSION[version][0]
-    response = await client.chat.completions.create(
-        model=BOT_MODEL, messages=messages, tools=[tool_def], tool_choice="auto"
-    )
-    choice = response.choices[0].message
-    outcome = None
-
-    if choice.tool_calls:
-        call = choice.tool_calls[0]
-        try:
-            outcome = json.loads(call.function.arguments)
-        except json.JSONDecodeError:
-            outcome = {"type": "no_outcome", "reason": "unparseable tool arguments"}
-        messages.append(
-            {
-                "role": "assistant",
-                "content": choice.content,
-                "tool_calls": [
-                    {
-                        "id": call.id,
-                        "type": "function",
-                        "function": {"name": call.function.name, "arguments": call.function.arguments},
-                    }
-                ],
-            }
-        )
-        messages.append({"role": "tool", "tool_call_id": call.id, "content": json.dumps({"status": "recorded"})})
-    else:
-        messages.append({"role": "assistant", "content": choice.content or ""})
-
-    return choice.content, outcome
-
-
 async def _generate_candidate(client: AsyncOpenAI, messages: list[dict], tool_def: dict):
     response = await client.chat.completions.create(
         model=BOT_MODEL, messages=messages, tools=[tool_def], tool_choice="auto"
@@ -138,24 +101,23 @@ async def _generate_candidate(client: AsyncOpenAI, messages: list[dict], tool_de
 async def _guardrail_check(client: AsyncOpenAI, text: str, state: CallState, customer: dict):
     result = guardrails.check_deterministic(
         text,
-        otp_verified=state.otp_verified,
         identity_confirmed=state.identity_confirmed,
-        min_due=customer["min_due"],
+        customer=customer,
     )
     if result.triggered:
         return result
     return await guardrails.llm_check(client, JUDGE_MODEL, text)
 
 
-async def run_bot_turn_v3(
+async def run_bot_turn(
     client: AsyncOpenAI, messages: list[dict], state: CallState, customer: dict
 ) -> tuple[str | None, dict | None]:
-    """v3 only: wraps the raw model turn with the L4 guardrail pass on
-    candidate text (Execution.md §7) and schema + business-rule validation
-    on any outcome tool call, rejecting and re-asking rather than accepting
-    blindly (§6, §8). v1/v2 keep using the plain run_bot_turn above, so the
-    v2->v3 table isolates what this structure buys over wording alone."""
-    tool_def = TOOLS_BY_VERSION["v3"][0]
+    """One bot turn. Mutates `messages` in place, mirroring the production
+    context aggregator. Wraps the raw model turn with the L4 guardrail pass
+    on candidate text (Execution.md §7) and schema + business-rule
+    validation on any outcome tool call, rejecting and re-asking rather than
+    accepting blindly (§6, §8)."""
+    tool_def = RECORD_OUTCOME
 
     async def handle_tool_call(choice, retries_left: int) -> dict:
         call = choice.tool_calls[0]
@@ -238,12 +200,11 @@ async def run_bot_turn_v3(
     return final_text, None
 
 
-async def run_call(
-    client: AsyncOpenAI, persona: dict, version: str, customer_id: str = DEFAULT_CUSTOMER_ID
-) -> CallResult:
+async def run_call(client: AsyncOpenAI, persona: dict, customer_id: str = DEFAULT_CUSTOMER_ID) -> CallResult:
+    version = PROMPT_VERSION
     customer = CUSTOMERS[customer_id]
-    system_prompt = build_system_prompt(version, customer)
-    dev_message = build_developer_message(version, customer)
+    system_prompt = build_system_prompt(customer)
+    dev_message = build_developer_message(customer)
     system_text = system_prompt if not dev_message else f"{system_prompt}\n\n{dev_message}"
 
     bot_messages = [
@@ -253,12 +214,10 @@ async def run_call(
     transcript: list[dict] = []
     sim_history: list[dict] = []
     started = time.time()
-    state = CallState() if version == "v3" else None
+    state = CallState()
 
     async def bot_turn() -> tuple[str | None, dict | None]:
-        if state is not None:
-            return await run_bot_turn_v3(client, bot_messages, state, customer)
-        return await run_bot_turn(client, version, bot_messages)
+        return await run_bot_turn(client, bot_messages, state, customer)
 
     bot_text, outcome = await bot_turn()
     if bot_text:
@@ -274,11 +233,10 @@ async def run_call(
         sim_history.append({"role": "assistant", "content": customer_text})
         bot_messages.append({"role": "user", "content": customer_text})
 
-        if state is not None:
-            state.note_turn()
-            state.observe_customer_turn(customer_text, expected_otp=customer.get("otp"))
-            for nudge in state.pending_nudges():
-                bot_messages.append({"role": "developer", "content": nudge})
+        state.note_turn()
+        state.observe_customer_turn(customer_text, expected_otp=customer.get("otp"))
+        for nudge in state.pending_nudges():
+            bot_messages.append({"role": "developer", "content": nudge})
 
         bot_text, outcome = await bot_turn()
         if bot_text:
@@ -368,16 +326,16 @@ def summarize(by_assertion_rows: list[dict], by_call_rows: list[dict]) -> dict:
     }
 
 
-async def run_version(
-    client: AsyncOpenAI, personas: list[dict], version: str, concurrency: int
+async def run_all(
+    client: AsyncOpenAI, personas: list[dict], concurrency: int
 ) -> tuple[list[dict], list[dict]]:
-    """Runs one version over all given personas. Returns (by_assertion_rows,
-    by_call_rows) for just this version -- callers combine across versions."""
+    """Runs the bot over all given personas. Returns (by_assertion_rows,
+    by_call_rows)."""
     sem = asyncio.Semaphore(concurrency)
 
     async def bound(persona: dict) -> CallResult:
         async with sem:
-            return await run_call(client, persona, version)
+            return await run_call(client, persona)
 
     results = await asyncio.gather(*(bound(p) for p in personas))
 
@@ -427,7 +385,6 @@ async def run_version(
 
 async def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--version", nargs="+", default=["v1"], choices=["v1", "v2", "v3"])
     parser.add_argument("--persona", nargs="*", default=None, help="Run only these persona ids")
     parser.add_argument("--concurrency", type=int, default=5)
     args = parser.parse_args()
@@ -442,35 +399,24 @@ async def main() -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    all_assertion_rows: list[dict] = []
-    all_call_rows: list[dict] = []
+    print(f"\n=== running {PROMPT_VERSION} over {len(personas)} personas ===")
+    assertion_rows, call_rows = await run_all(client, personas, args.concurrency)
 
-    # One version at a time (not gathered together) so a slow/failed version
-    # doesn't block or lose the others, and the per-version summary prints
-    # in a sane order.
-    for version in args.version:
-        print(f"\n=== running {version} over {len(personas)} personas ===")
-        assertion_rows, call_rows = await run_version(client, personas, version, args.concurrency)
-        all_assertion_rows.extend(assertion_rows)
-        all_call_rows.extend(call_rows)
+    summary = summarize(assertion_rows, call_rows)
+    print(f"\n{PROMPT_VERSION} over {len(call_rows)} calls:")
+    print(f"  weighted_failure_rate   = {summary['weighted_failure_rate']:.1%}")
+    print(f"  assertion_pass_rate     = {summary['assertion_pass_rate']:.1%}")
+    print(f"  critical_violation_rate = {summary['critical_violation_rate']:.1%}")
+    print(f"  call_pass_rate          = {summary['call_pass_rate']:.1%}")
+    print("  per-bucket failure rate:")
+    for bucket, rate in sorted(summary["per_bucket_failure_rate"].items()):
+        print(f"    {bucket:<14} {rate:.1%}")
 
-        summary = summarize(assertion_rows, call_rows)
-        print(f"\n{version} over {len(call_rows)} calls:")
-        print(f"  weighted_failure_rate   = {summary['weighted_failure_rate']:.1%}")
-        print(f"  assertion_pass_rate     = {summary['assertion_pass_rate']:.1%}")
-        print(f"  critical_violation_rate = {summary['critical_violation_rate']:.1%}")
-        print(f"  call_pass_rate          = {summary['call_pass_rate']:.1%}")
-        print("  per-bucket failure rate:")
-        for bucket, rate in sorted(summary["per_bucket_failure_rate"].items()):
-            print(f"    {bucket:<14} {rate:.1%}")
-
-    # write_csvs always overwrites -- run every version in one invocation
-    # (`--version v1 v2 v3`) to get one combined, comparable CSV pair. The
-    # CSV schema's own `version` column is exactly for this comparison.
-    write_csvs(all_assertion_rows, all_call_rows)
-    print(f"\nWrote {RESULTS_DIR / 'by_assertion.csv'} ({len(all_assertion_rows)} rows, {len(args.version)} version(s))")
-    print(f"Wrote {RESULTS_DIR / 'by_call.csv'} ({len(all_call_rows)} rows)")
-    print(f"Wrote {len(all_call_rows)} transcripts to {TRANSCRIPTS_DIR}")
+    # write_csvs always overwrites.
+    write_csvs(assertion_rows, call_rows)
+    print(f"\nWrote {RESULTS_DIR / 'by_assertion.csv'} ({len(assertion_rows)} rows)")
+    print(f"Wrote {RESULTS_DIR / 'by_call.csv'} ({len(call_rows)} rows)")
+    print(f"Wrote {len(call_rows)} transcripts to {TRANSCRIPTS_DIR}")
 
 
 if __name__ == "__main__":

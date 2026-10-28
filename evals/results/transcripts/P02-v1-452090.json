@@ -1,0 +1,38 @@
+{
+  "call_id": "P02-v1-452090",
+  "persona_id": "P02",
+  "archetype": "already-paid",
+  "version": "v1",
+  "outcome": {
+    "type": "already_paid",
+    "date": "2026-10-16",
+    "mode": "UPI"
+  },
+  "duration_sec": 11.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma speaking. What is this call about?"
+    },
+    {
+      "role": "bot",
+      "text": "Great, thanks. I wanted to remind you that your credit card payment was due on 15th October. Your minimum amount due is 4,820 rupees. That includes interest, and a late payment fee of 750 rupees. Your total outstanding bill is 18,420 rupees."
+    },
+    {
+      "role": "customer",
+      "text": "I already cleared that payment two days ago through UPI, so I don\u2019t understand why I am getting this call."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for letting me know. Can you tell me the date you made the payment and confirm it was through UPI? Your payment will reflect in 2 working days."
+    },
+    {
+      "role": "customer",
+      "text": "I paid on the 16th of October through UPI. So it should already be showing up by now."
+    }
+  ]
+}

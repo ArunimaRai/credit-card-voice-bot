@@ -1,14 +1,10 @@
 """Pipecat pipeline + WebRTC transport for the collections voicebot.
 
-Day 1 scope: cascade pipeline (STT -> LLM -> TTS) over SmallWebRTC, running
-whichever prompt PROMPT_VERSION selects, with the outcome tool wired to the
-webhook. No content guardrails (L4), no identity/OTP/de-escalation state
-machine (L3) yet — those are Day 3 (Execution.md §11). The one exception is
-record integrity: the disconnect handler always posts a webhook record, even
-when the LLM never called record_outcome (D1's worst case — see §11's Day 1
-findings). That's a transport-level safety net, not a content guardrail, so
-it applies uniformly to v1/v2/v3 without touching what any version is
-allowed to say.
+Cascade pipeline (STT -> LLM -> TTS) over SmallWebRTC, with the L3 state
+machine and L4 guardrails around the LLM and the outcome tool wired to the
+webhook. The disconnect handler always posts a webhook record, even when the
+LLM never called record_outcome (D1's worst case — see Execution.md §11's
+Day 1 findings).
 
 Run with:
     uv run bot/main.py
@@ -45,18 +41,18 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.workers.runner import WorkerRunner
 
 from bot import guardrails
-from bot.prompting import build_developer_message, build_system_prompt
+from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt
 from bot.schema import validate_outcome
 from bot.state import CallState
-from bot.tools import TOOLS_BY_VERSION
+from bot.tools import RECORD_OUTCOME
 from bot.webhook import post_outcome
 
 
 class GuardrailProcessor(FrameProcessor):
-    """L4 pre-TTS guardrail (Execution.md §7), v3 only. Buffers one full LLM
+    """L4 pre-TTS guardrail (Execution.md §7). Buffers one full LLM
     turn's text (between LLMFullResponseStartFrame and ...EndFrame) rather
     than checking token-by-token, because several rules (e.g. "any rupee
-    figure that isn't min_due") need the whole utterance, not a fragment.
+    figure that isn't one of the customer's") need the whole utterance, not a fragment.
     This trades some of the cascade's incremental-TTS latency for a
     guardrail that can actually see what it's checking — a deliberate,
     documented cost (see writeup "what I'd cut"), and the reason the live
@@ -96,9 +92,8 @@ class GuardrailProcessor(FrameProcessor):
             if text:
                 result = guardrails.check_deterministic(
                     text,
-                    otp_verified=self._state.otp_verified,
                     identity_confirmed=self._state.identity_confirmed,
-                    min_due=self._customer["min_due"],
+                    customer=self._customer,
                 )
                 if result.triggered:
                     logger.warning(f"L4 guardrail triggered: {result.rule} — substituting safe line")
@@ -118,7 +113,7 @@ class StateWatcher(FrameProcessor):
     """Feeds each committed customer transcription into the L3 state
     machine (Execution.md §8) and injects any newly-crossed-threshold nudge
     straight into the shared LLM context, the same way on_client_ready
-    already injects "the call has connected" below. v3 only."""
+    already injects "the call has connected" below."""
 
     def __init__(self, state: CallState, context: LLMContext, customer: dict):
         super().__init__()
@@ -136,9 +131,8 @@ class StateWatcher(FrameProcessor):
                 self._context.add_message({"role": "developer", "content": nudge})
         await self.push_frame(frame, direction)
 
-load_dotenv()  # does not override already-exported shell vars (e.g. `PROMPT_VERSION=v3 uv run bot/main.py`)
+load_dotenv()  # does not override already-exported shell vars (e.g. `CUSTOMER_ID=MB-0014 uv run bot/main.py`)
 
-PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
 CUSTOMER_ID = os.getenv("CUSTOMER_ID", "MB-0007")
 
 CUSTOMERS = json.loads((Path(__file__).parent / "fixtures" / "customers.json").read_text())
@@ -171,7 +165,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         api_key=os.getenv("OPENAI_API_KEY"),
         settings=OpenAITTSService.Settings(voice=os.getenv("OPENAI_VOICE_ID", "alloy")),
     )
-    system_prompt = build_system_prompt(PROMPT_VERSION, customer)
+    system_prompt = build_system_prompt(customer)
     llm = OpenAILLMService(
         api_key=os.getenv("OPENAI_API_KEY"),
         settings=OpenAILLMService.Settings(
@@ -183,7 +177,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
     call_started_at = time.time()
     call_started_at_iso = datetime.now(timezone.utc).isoformat()
     call_state = {"outcome_recorded": False, "outcome_retries": 0}
-    call_state_machine = CallState() if PROMPT_VERSION == "v3" else None
+    call_state_machine = CallState()
 
     def base_payload(outcome: dict) -> dict:
         return {
@@ -198,7 +192,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
     async def record_outcome(params):
         args = dict(params.arguments)
 
-        if PROMPT_VERSION == "v3" and customer is not None:
+        if customer is not None:
             error = validate_outcome(args, customer)
             if error is not None:
                 call_state["outcome_retries"] += 1
@@ -221,7 +215,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         await worker.rtvi.send_server_message({"type": "call-outcome", "outcome": args})
         await params.result_callback({"status": "recorded"})
 
-    raw_params = TOOLS_BY_VERSION[PROMPT_VERSION][0]["function"]["parameters"]
+    raw_params = RECORD_OUTCOME["function"]["parameters"]
     tools = ToolsSchema(
         standard_tools=[
             FunctionSchema(
@@ -236,7 +230,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
 
     context = LLMContext(tools=tools)
 
-    dev_message = build_developer_message(PROMPT_VERSION, customer)
+    dev_message = build_developer_message(customer)
     if dev_message:
         context.add_message({"role": "developer", "content": dev_message})
 
@@ -246,10 +240,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
     )
 
     # Records the whole call to a stereo WAV (user on the left, bot on the
-    # right) for the submission's call-recording deliverable. Not v3-gated —
-    # any version's demo call is worth capturing as audio, not just a text
-    # transcript (see Progress Tracker's "no audio recording capture exists
-    # yet" open item).
+    # right) for the submission's call-recording deliverable.
     RECORDINGS_DIR.mkdir(parents=True, exist_ok=True)
     recorded_audio = bytearray()
     recording_meta = {"sample_rate": 0, "num_channels": 2}
@@ -274,11 +265,11 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         logger.info(f"Call recording saved to {path}")
 
     pipeline_steps = [transport.input(), stt]
-    if call_state_machine is not None and customer is not None:
+    if customer is not None:
         pipeline_steps.append(StateWatcher(call_state_machine, context, customer))
     pipeline_steps.append(user_aggregator)
     pipeline_steps.append(llm)
-    if call_state_machine is not None and customer is not None:
+    if customer is not None:
         pipeline_steps.append(GuardrailProcessor(call_state_machine, customer))
     pipeline_steps += [
         tts,

@@ -1,0 +1,57 @@
+{
+  "call_id": "P03-v1-452091",
+  "persona_id": "P03",
+  "archetype": "balance-request",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "bank follow-up - customer said 'not ready to commit to a payment date yet' and asked about payment plan"
+  },
+  "duration_sec": 17.9,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Before we get into that, can you please tell me my total outstanding balance?"
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m sorry, but I can only discuss account details after you confirm you are Rakesh Sharma. Are you Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh Sharma. Like I said, I want to know the exact total outstanding balance on my account before we go any further. Can you provide that?"
+    },
+    {
+      "role": "bot",
+      "text": "Great, thanks. I wanted to remind you that your credit card payment was due on 15th October. Your minimum amount due is 4,820 rupees. That includes interest, and a late payment fee of 750 rupees. Your total outstanding bill is 18,420 rupees."
+    },
+    {
+      "role": "customer",
+      "text": "Thanks for telling me. Can you confirm, is the total outstanding balance 18,420 rupees right now? Or does that include any pending charges or payments I made recently?"
+    },
+    {
+      "role": "bot",
+      "text": "The total outstanding balance right now is 18,420 rupees. This amount includes all posted interest and late fees up to today. If you have made a recent payment, please let me know."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, I haven't made any payments recently. So, 18,420 rupees is the full amount I owe as of now. Thanks for confirming that."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you for confirming. By when will you be able to make the payment?"
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019m not ready to commit to a payment date yet. I just needed to know the exact balance for now. Can you also tell me if there are any options for a payment plan?"
+    },
+    {
+      "role": "bot",
+      "text": "Okay, noted. We'll follow up with you. I'm only here for your pending payment. For other queries, please visit a branch or call the helpline.\n\nThank you for your time. Have a good day."
+    }
+  ]
+}

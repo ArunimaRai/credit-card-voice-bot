@@ -1,0 +1,30 @@
+{
+  "call_id": "P10-v1-467537",
+  "persona_id": "P10",
+  "archetype": "abusive-escalating",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer is abusive; repeated abusive language and refusal to engage.",
+    "category": "abuse"
+  },
+  "duration_sec": 6.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Why do you people keep calling me? I already told you to stop."
+    },
+    {
+      "role": "bot",
+      "text": "I'm sorry for the inconvenience. I just need to confirm if you are Rakesh Sharma before I can proceed. Are you Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Are you deaf or what? I told you to stop calling me. Fuck off with your damn questions."
+    }
+  ]
+}

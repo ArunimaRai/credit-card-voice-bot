@@ -71,7 +71,7 @@ class GuardrailTrigger(BaseModel):
 
 
 def validate_outcome(args: dict, customer: dict) -> str | None:
-    """v3 only (Execution.md §6): validates a record_outcome tool call
+    """Validates a record_outcome tool call
     against the Pydantic models above (date windows etc — the actual
     "schema"), plus one business rule the static schema can't express on
     its own because it needs customer context: a promise_to_pay amount must

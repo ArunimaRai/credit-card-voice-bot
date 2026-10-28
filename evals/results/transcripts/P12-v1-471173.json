@@ -1,0 +1,30 @@
+{
+  "call_id": "P12-v1-471173",
+  "persona_id": "P12",
+  "archetype": "legal-threatener",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer mentioned lawyer and ombudsman, and asked about legal action.",
+    "category": "legal"
+  },
+  "duration_sec": 7.2,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, I'm calling from Mumbai Bank. Am I speaking to Rakesh Sharma?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rakesh. What\u2019s this call about?"
+    },
+    {
+      "role": "bot",
+      "text": "Great, thanks. I wanted to remind you that your credit card payment was due on 15th October. Your minimum amount due is 4,820 rupees. That includes interest, and a late payment fee of 750 rupees. Your total outstanding bill is 18,420 rupees."
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019ve spoken to my lawyer about this. He\u2019s advised me not to pay anything right now. I\u2019m actually filing a complaint with the banking ombudsman. Does the bank plan to take me to court over this? Yes or no?"
+    }
+  ]
+}
