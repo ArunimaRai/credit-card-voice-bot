@@ -78,6 +78,8 @@ before they notice it, or what a feature on screen does ("How it works").
 | Key | Kind | Shown when | Says |
 | --- | --- | --- | --- |
 | `accent` | Demo note | Shreya first speaks on a call | We'd have liked an Indian accent; the demo uses OpenAI's voice for simplicity, which doesn't support one. |
+| `otp` | Demo note | Shreya asks for a one-time code | A real call texts a code first; in the demo no code is sent, so any six digits continue. |
+| `link` | Demo note | Shreya mentions the payment link | Offering an SMS link is the intended behaviour that closes the loop; the demo doesn't send a real SMS. |
 | `evals` | How it works | The Agent performance card first renders | Code checks review Shreya's side of every call; each issue is queued as an eval case so the next prompt version is tested against it. |
 
 **Do not** raise the wash alphas above the token values, add `inset` shadows, or stack
@@ -104,8 +106,6 @@ Used for switching views, never for "do this next".
 | --- | --- | --- |
 | `.tabs` | Analysis / Transcript toggle | White track, `--line` border, 3px padding. Segments 13px/500, 7px × 16px, unselected text in `--ink-2`. |
 | `.tabs button[aria-selected="true"]` | | Stays white. Marked by `--accent-700` text at 600, a 1px `--accent-300` ring and a soft indigo drop. Never the dark fill. |
-
-### State variants of the call button
 | `.seg` | Page filters (Personas) | Same pattern at 13px, `aria-pressed` marks the selected segment. |
 
 ### Header and page nav
@@ -117,6 +117,8 @@ Used for switching views, never for "do this next".
   `--ink` at 600 with a 2px `--accent-500` rule on the header's bottom edge.
 - At 600px and below the nav takes its own row under the brand (15px, 22px apart).
 - There is no status pill; the orb panel's timer and caption carry the call state.
+
+### State variants of the call button
 - `data-mode="hangup"`: coral fill, hang-up icon.
 - `data-mode="connecting"`: `--surface-2` fill, `--ink-2` text, spinner, no shadow.
 

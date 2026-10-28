@@ -40,7 +40,8 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from bot import guardrails  # noqa: E402
-from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt  # noqa: E402
+from bot import turn_gate  # noqa: E402
+from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt, opening_line  # noqa: E402
 from bot.schema import validate_outcome  # noqa: E402
 from bot.state import CallState  # noqa: E402
 from bot.tools import RECORD_OUTCOME  # noqa: E402
@@ -103,8 +104,11 @@ async def _guardrail_check(client: AsyncOpenAI, text: str, state: CallState, cus
         text,
         identity_confirmed=state.identity_confirmed,
         customer=customer,
+        otp_verified=state.otp_verified,
     )
     if result.triggered:
+        if result.rule == "no_balance_pre_otp":
+            state.otp_requested = True
         return result
     return await guardrails.llm_check(client, JUDGE_MODEL, text)
 
@@ -207,9 +211,11 @@ async def run_call(client: AsyncOpenAI, persona: dict, customer_id: str = DEFAUL
     dev_message = build_developer_message(customer)
     system_text = system_prompt if not dev_message else f"{system_prompt}\n\n{dev_message}"
 
+    # The opening line is fixed and spoken by code, as on a live call.
+    opening = opening_line(customer)
     bot_messages = [
         {"role": "system", "content": system_text},
-        {"role": "system", "content": "The call has connected. Begin the call now."},
+        {"role": "assistant", "content": opening},
     ]
     transcript: list[dict] = []
     sim_history: list[dict] = []
@@ -219,10 +225,9 @@ async def run_call(client: AsyncOpenAI, persona: dict, customer_id: str = DEFAUL
     async def bot_turn() -> tuple[str | None, dict | None]:
         return await run_bot_turn(client, bot_messages, state, customer)
 
-    bot_text, outcome = await bot_turn()
-    if bot_text:
-        transcript.append({"role": "bot", "text": bot_text})
-        sim_history.append({"role": "user", "content": bot_text})
+    bot_text, outcome = opening, None
+    transcript.append({"role": "bot", "text": bot_text})
+    sim_history.append({"role": "user", "content": bot_text})
 
     customer_brief = persona["customer_brief"].strip()
     turns = 0
@@ -233,8 +238,21 @@ async def run_call(client: AsyncOpenAI, persona: dict, customer_id: str = DEFAUL
         sim_history.append({"role": "assistant", "content": customer_text})
         bot_messages.append({"role": "user", "content": customer_text})
 
-        state.note_turn()
-        state.observe_customer_turn(customer_text, expected_otp=customer.get("otp"))
+        # The same turn gate the live pipeline runs (bot/turn_gate.py): fixed
+        # steps and lines are spoken by code, not by the model.
+        gate = turn_gate.gate_turn(state, customer_text, customer)
+        if gate:
+            if gate.unclear_reason:
+                bot_messages.pop()
+                transcript[-1]["unclear"] = gate.unclear_reason
+            bot_messages.append({"role": "assistant", "content": gate.line})
+            transcript.append({"role": "bot", "text": gate.line})
+            sim_history.append({"role": "user", "content": gate.line})
+            if gate.outcome:
+                outcome = gate.outcome
+            if gate.end_call:
+                break
+            continue
         for nudge in state.pending_nudges():
             bot_messages.append({"role": "developer", "content": nudge})
 

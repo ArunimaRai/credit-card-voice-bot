@@ -1,0 +1,49 @@
+{
+  "call_id": "P05-v1-990499",
+  "persona_id": "P05",
+  "archetype": "evader",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "bank follow-up - customer said 'in a few days for sure'"
+  },
+  "duration_sec": 8.4,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. What about it?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, everything's fine. I'll pay it soon, just need a couple more days."
+    },
+    {
+      "role": "bot",
+      "text": "Thanks for letting me know. Would it help if I sent you a secure payment link by SMS right now? When do you think you'll be able to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "That would be helpful, thanks. I can't say exactly when, but it'll be in a few days for sure."
+    },
+    {
+      "role": "bot",
+      "text": "I see, thanks for sharing that. No problem, I've noted that. We'll follow up with you.\n\n"
+    }
+  ]
+}

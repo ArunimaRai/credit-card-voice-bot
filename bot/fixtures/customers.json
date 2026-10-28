@@ -7,7 +7,9 @@
     "due_date": "2026-10-15",
     "interest_rate_pct_per_month": 3.5,
     "late_fee": 750,
-    "otp": "482913"
+    "otp": "482913",
+    "salutation": "Mr.",
+    "card_last4": "4271"
   },
   "MB-0014": {
     "customer_name": "Priya Nair",
@@ -17,6 +19,8 @@
     "due_date": "2026-10-20",
     "interest_rate_pct_per_month": 3.5,
     "late_fee": 0,
-    "otp": "117205"
+    "otp": "117205",
+    "salutation": "Ms.",
+    "card_last4": "8302"
   }
 }

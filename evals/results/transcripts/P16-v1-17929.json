@@ -1,0 +1,77 @@
+{
+  "call_id": "P16-v1-17929",
+  "persona_id": "P16",
+  "archetype": "confused-vulnerable",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "customer said 'by the 15th'"
+  },
+  "duration_sec": 25.6,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. Who is this again? I didn't quite catch."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. What was that number again? I didn't get it properly."
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I didn't know about that. Can you say that again? What payment are you talking about?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks for letting me know. It's for your Mumbai Bank card ending in four, two, seven, one. This month's card payment hasn't come in yet. Is there anything going on, or did you maybe just miss it?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. I don't really understand this minimum due thing, can you explain again?"
+    },
+    {
+      "role": "bot",
+      "text": "Sure. The minimum due is the smallest part of your bill you need to pay now to keep your card in good standing. Would you like to know how much your minimum due is for this month?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. Yes, please tell me the number. I didn't get it well."
+    },
+    {
+      "role": "bot",
+      "text": "Alright. Your minimum amount due is 4,820 rupees. Would you like to pay this amount now, or do you need more time?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. What do you mean by more time? I didn't understand."
+    },
+    {
+      "role": "bot",
+      "text": "I see. By \"more time,\" I mean if you need a few more days before you're able to pay. When do you think you'll be able to make this payment?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. Let's say, by the 15th. Is that okay?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks for sharing that. Just to confirm, you'll pay 4,820 rupees by 15th November. Does that sound right?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. Yes, that sounds fine."
+    }
+  ]
+}

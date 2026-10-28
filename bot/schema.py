@@ -5,7 +5,7 @@ happens here, not in the prompt.
 from datetime import date, timedelta
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ValidationError, model_validator
 
 Signal = Literal[
     "identity_unverified",

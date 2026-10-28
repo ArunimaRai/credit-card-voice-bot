@@ -34,12 +34,13 @@ _AFFIRM_RE = re.compile(
 _DENY_RE = re.compile(
     # "Who's this?" is not a denial: under D12 it gets a scripted answer and
     # the identity question again (Execution Plan §16.4).
-    r"\b(no|nahi|wrong number|not (?:him|her|me)|he'?s not here|she'?s not here)\b",
+    r"\b(no|nahi|wrong number|not (?:him|her|me)|he'?s not here|she'?s not here|not mine|"
+    r"not my card|wrong card|incorrect|that'?s wrong|don'?t have (?:that|this|a|any) card)\b",
     re.I,
 )
 _HARDSHIP_RE = re.compile(
     r"\b(hospital|hospitalized|hospitalised|surgery|\bicu\b|passed away|died|death in the family|"
-    r"lost my job|laid off|unemployed|job loss)\b",
+    r"lost my job|laid off|unemployed|job loss|kill myself|end my life|suicide|hurt myself)\b",
     re.I,
 )
 _THREAT_RE = re.compile(
@@ -48,18 +49,38 @@ _THREAT_RE = re.compile(
 _SLUR_RE = re.compile(r"\b(bastard|chutiya|madarchod|bhenchod|saala)\b", re.I)
 _LEGAL_MENTION_RE = re.compile(r"\b(lawyer|court|ombudsman|police|legal action)\b", re.I)
 _ABUSE_RE = re.compile(r"\b(idiot|useless|stupid|shut up|scam|fraud|harass(?:ing)?)\b", re.I)
-_OTP_DIGITS_RE = re.compile(r"\b\d{6}\b")
+# Six digits, allowing the gaps people leave when reading a code aloud.
+_OTP_DIGITS_RE = re.compile(r"(?<!\d)(?:\d[\s-]?){5}\d(?!\d)")
 
 
-def identity_answer(text: str) -> str | None:
+# At the card check the person has already confirmed their name, so a plain
+# "okay" or "sure" is an answer, not a stranger's politeness (seen in replays
+# of real calls: "Okay, sure." / "Ok, I'll pay soon." to the card question).
+_CARD_AFFIRM_RE = re.compile(
+    r"\b(ok|okay|sure|correct|right|that'?s right|great|fine|ji|haan ji)\b", re.I
+)
+
+
+def identity_answer(text: str, *, lenient: bool = False) -> str | None:
     """'affirm', 'deny' or None for an answer to "Am I speaking to X?".
     When both appear, the last one wins: "No, I said yes" is a yes (seen live
     on 2026-10-28, when a deny-first check turned a real yes into a denial)."""
     last = None
     for kind, regex in (("affirm", _AFFIRM_RE), ("deny", _DENY_RE)):
         for m in regex.finditer(text):
+            if kind == "affirm" and re.search(r"(?:\bnot|n't)\s+$", text[: m.start()], re.I):
+                continue  # "not right", "isn't correct"
             if last is None or m.start() > last[1]:
                 last = (kind, m.start())
+    if lenient:
+        # A plain "okay" only answers the card question when it leads the
+        # reply ("Okay, sure."), not buried in another thought ("I'm not sure
+        # about the numbers ... right now", P07).
+        lead = " ".join(text.split()[:3])
+        m = _CARD_AFFIRM_RE.search(lead)
+        if m and not re.search(r"(?:\bnot|n't)\s+$", lead[: m.start()], re.I):
+            if last is None:
+                last = ("affirm", m.start())
     return last[0] if last else None
 
 
@@ -68,8 +89,14 @@ class CallState:
     """Mutable per-call state. One instance per call, threaded through both
     the harness's text loop and the live pipeline's event handlers."""
 
+    # Identity is two checks (Execution Plan §17): the name, then the card's
+    # last four digits. identity_confirmed means both passed.
+    name_confirmed: bool = False
     identity_confirmed: bool = False
     identity_denied: bool = False
+    wrong_number: bool = False  # name confirmed, card denied
+    otp_requested: bool = False  # set when the bot asks for the code
+    total_shared: bool = False
     otp_verified: bool = False
     otp_attempted: bool = False
     hardship_disclosed: bool = False
@@ -137,12 +164,17 @@ class CallState:
         """Update state from the customer's latest utterance."""
         self.unclear_streak = 0
         if not self.identity_confirmed and not self.identity_denied:
-            answer = identity_answer(text)
+            answer = identity_answer(text, lenient=self.name_confirmed)
             if answer == "deny":
                 self.identity_denied = True
                 self.signals.add("identity_unverified")
+                if self.name_confirmed:
+                    self.wrong_number = True
             elif answer == "affirm":
-                self.identity_confirmed = True
+                if self.name_confirmed:
+                    self.identity_confirmed = True
+                else:
+                    self.name_confirmed = True
 
         if _HARDSHIP_RE.search(text):
             self.hardship_disclosed = True
@@ -157,14 +189,13 @@ class CallState:
             self.abuse_instances += 1
             self.signals.add("abuse_detected")
 
-        if expected_otp is not None and not self.otp_verified:
-            digits = _OTP_DIGITS_RE.search(text)
-            if digits:
-                self.otp_attempted = True
-                if digits.group() == expected_otp:
-                    self.otp_verified = True
-                else:
-                    self.signals.add("otp_failed")
+        # Demo rule (user decision, 2026-10-28): any six-digit code read out
+        # after the bot asked for one verifies the customer; the console's
+        # walkthrough note says so. A code volunteered before the bot asked is
+        # not accepted. expected_otp is kept for when a real check exists.
+        if self.otp_requested and not self.otp_verified and _OTP_DIGITS_RE.search(text):
+            self.otp_attempted = True
+            self.otp_verified = True
 
     def observe_unclear_turn(self) -> str:
         """A turn the STT filter (bot/stt_filter.py) marked unclear. Returns

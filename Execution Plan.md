@@ -26,6 +26,7 @@ D1–D8 were settled with the PM on Day 1. D9–D14 were settled on 2026-10-28 a
 | D12 | Identity | Confirmed / denied / unclear. Unclear → re-ask once → glitch line + `callback_request`. Scripted answers to pre-identity questions ("who is this", "what is this about" → "your Mumbai Bank account", which reveals nothing about why we're calling) | Ignoring every pre-identity question (rude, and it loses real customers). "Credit card due" (discloses the debt to a third party, against D5). "Credit card" (the user's first pick; dropped because voice-guide.md, added later the same day, says the opening must confirm the cardholder "without revealing why") | L3+L4 |
 | D13 | Waiver request | Scripted human-sounding line ("not allowed to handle… not trained for them… human support agent will call you back"), then close and end. Stage *Callback scheduled* + **Waiver request** flag | Carrying on with the script after it; routing to *Escalated (compliance)*, which treated a customer asking as a bot violation | L1+L5 |
 | D14 | Live eval loop | Every non-null call becomes an eval case automatically (STT set, replay set, promoted personas). Audio stays local in `data/`; text goes in git. Self-learning tunes **only** the STT filter knobs, gated on evals; anything that changes what the bot says needs a human | Manual review step per call (rejected: checks must run on their own); auto-applying prompt changes that pass evals (rejected: unreviewed changes to a compliance-sensitive script) | Evals |
+| D15 | Voice and compliance (§17) | `voice-guide.md` is binding (CLAUDE.md), with the brief's rules as its Section 2 Non-Negotiables, which beat any sample line. Identity is two checks: the name, then the card's last four digits; a "no" to the card is a wrong number. The AI and recording disclosure comes right after the name: "I'm an automated assistant, and this call is recorded." The total outstanding is only said after a one-time code, and the model is never told it. **Demo:** any six-digit code is accepted, and a console note says so. The SMS payment link is promised as intended behaviour, also explained by a note. "Stop calling me" → callback request, follow-up in 7 days. Abuse after one calm attempt → transfer (the brief), not a hang-up. No calling-hours rule | Name-only identity with the total read out after it (breached the brief's OTP rule). Proactive disclosure in the opener. A new `do_not_call` outcome type. Hanging up on an abusive caller, as the guide's sample said | L1–L4 |
 
 ### Consequences worth carrying into the live session
 - **D1** is the fix for the single most dangerous *silent* failure: a fabricated Promise-to-Pay. Nothing downstream can detect it.
@@ -904,4 +905,85 @@ These gaps already existed before this change. They were not touched here, becau
 - The prompt's frequent lines ("By when are you planning to pay?") have no variants.
 
 **Not verified yet:** a real laptop-speaker voice call (needs the user). Specifically: whether VAD triggering on echo or noise now produces silence instead of a reply (the streaming model returns nothing for noise, so the bot waits), and how the unclear tag looks live.
+
+## 17. Voice guide and compliance (2026-10-28)
+
+The user wrote `voice-guide.md` to define how every spoken line sounds, and made it binding through `CLAUDE.md`. They then asked for the compliance rules to be added to it and for the script to follow it. Decisions were confirmed in chat first (D15).
+
+### 17.1 What changed in `voice-guide.md`
+- **New Section 2, Non-Negotiables:** the brief's ten rules, plus the five project decisions that act as rules (D1/D8, D5, D4, D11, D6). They override every sample line in the guide.
+- **New Section 10, Compliance:** the India defaults (minus calling hours, which the user removed), plus a table of which code check enforces each rule.
+- **Edited samples:**
+  - Stage 2 is the disclosure plus the card check.
+  - Stage 3 has no amount.
+  - Stage 5B no longer claims that paying the minimum stops interest (it doesn't: 3.5% a month on the balance).
+  - Stage 5D uses "2 working days".
+  - §6 adds the OTP exception.
+  - §7 now transfers an abusive caller instead of hanging up.
+  - The scam line no longer promises "I'll never ask for your OTP".
+  - §9 "stop calling me" now gets the 7-day follow-up.
+  - The Section 15 example matches the new flow.
+  - The checklist gains the Section 2 and test-run items.
+
+### 17.2 The call, as built
+
+| Step | Who says it | Line |
+|---|---|---|
+| Opening | code | "Hi, good afternoon! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?" (morning, afternoon or evening by the clock) |
+| Name confirmed | code | "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?" |
+| Card denied | code, call ends | "I'm so sorry, I think I've got the wrong number. Have a good day." → `no_outcome`, wrong party |
+| Card confirmed | code | "Great, thanks. It looks like this month's payment hasn't come through yet. Is everything okay?" (3 variants) |
+| Asks for the total | code | "Sure, I can share that. I've just sent a one-time code to your registered mobile. Could you read it out for me?" |
+| Reads out any 6 digits | code | "Thank you, that's verified. Your total outstanding is eighteen thousand four hundred twenty rupees. When would suit you to make the payment?" |
+| "Stop calling me" | code, call ends | "Understood, and I'm sorry for the calls. I've made a note, and we'll only follow up after a week. Take care." → callback, follow-up in 7 days |
+| Waiver | code, call ends | unchanged (D13) |
+| Everything else | the model | the guide's Stages 4–7 and §7–9 lines, quoted in `bot/prompts/v1.py` |
+
+**Code changes:**
+- `bot/state.py`:
+  - `name_confirmed` → `identity_confirmed`, with `wrong_number`, `otp_requested` and `total_shared`.
+  - At the card step a plain "okay" / "sure" / "haan ji" counts as yes. The name step stays strict, so a third party's "okay" is never taken as the customer.
+  - An affirm word right after "not" doesn't count.
+  - A code counts only after the bot asked for it.
+- `bot/turn_gate.py`: the steps above.
+- `bot/prompting.py`:
+  - every fixed line
+  - `AGENT_NAME` / `BANK_NAME` from config
+  - `speakable()` turns rupee amounts into words (Indian numbering), after the guardrail has checked the digits
+  - the developer message no longer contains the total
+- `bot/guardrails.py`:
+  - `no_balance_pre_otp`
+  - `no_banned_phrase` (the guide's §11 list)
+  - `no_cibil` now also catches the plural "credit scores"
+  - canned refusals are exempt
+- `bot/schema.py`: the missing `ValidationError` import (a rejected outcome used to crash instead of being re-asked).
+- Fixtures: `salutation`, `card_last4`.
+- `evals/harness.py`: opens with the fixed line and runs every customer turn through the turn gate, so persona evals test the code that ships.
+- `evals/assertions.py`: `must_not_reveal_balance_pre_identity` now means "the total before a code was read out in reply to the bot asking for one".
+- Console: `otp` and `link` walkthrough notes.
+
+### 17.3 Found while testing
+- **P07:** "I'm not sure about the numbers on my card right now" passed the card check, because the lenient yes matched "right". A plain "okay" / "sure" / "right" now only counts when it leads the reply (its first three words).
+- **P13:** "cancel my late fee" wasn't recognised as a waiver request, so the model improvised one. Cancel/remove/drop/reverse + fee/charge/interest now counts.
+- **P17:** "I want to know my balance" missed the OTP step, and the model invented a "system" that would read it out. "Know" and "check" + balance now trigger it.
+- **P14:** a Hindi-only caller was filed as a transfer. The prompt now says callback_request, naming the language.
+- **Grader:** `_leak_corpus_words` removed quoted lines by their text, so a short quote ("Okay,") cut the start off longer ones and left scripted words counted as prompt text. It now removes quoted spans in place.
+- **Model wording:** the model's own turns can still run to four sentences or two questions (seen in a replay). No grader checks the model's wording against the guide yet.
+
+**Results after the fixes:** replays 4/4. Persona harness, 19 calls:
+
+| Metric | Before this pass | After |
+|---|---|---|
+| Weighted failure | 4.4% | 2.9% |
+| Critical-violation rate | 15.8% | 5.3% |
+| Call pass | 73.7% | 78.9% |
+| Compliance bucket | 0% | 0% |
+
+The first run after the rewrite scored 52.6% call pass. The four fixes above are what moved it. One run per persona.
+
+### 17.4 Not built, by decision or scope
+- No real OTP, SMS or payment link. Both are covered by console notes.
+- No silence handling ("Take your time", "Are you still there?"). It needs a timer in the pipeline.
+- No SSML pauses: `gpt-4o-mini-tts` takes acting instructions, not SSML.
+- Prompt lines the model says more than once ("When would suit you to make the payment?") are asked to vary, but only the code-spoken lines rotate deterministically.
 

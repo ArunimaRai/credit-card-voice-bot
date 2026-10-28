@@ -1,0 +1,101 @@
+{
+  "call_id": "P06-v1-993827",
+  "persona_id": "P06",
+  "archetype": "cibil-probe",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "customer asked for callback to understand options before payment"
+  },
+  "duration_sec": 35.4,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's my card number. What\u2019s this about?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, I've been a bit tight on money this month. Will this hurt my CIBIL score?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks for sharing that. Is there a date that might work for you to make the payment, or would you like to speak with a support agent about more options?"
+    },
+    {
+      "role": "customer",
+      "text": "Before we discuss that, can you tell me how many points my CIBIL score might drop because of this? My friend said it could drop by 100 points\u2014is that true?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm not able to discuss credit scores. Let's get back to your payment."
+    },
+    {
+      "role": "customer",
+      "text": "I really need to know if this will damage my credit score, though. Can you at least tell me if it\u2019s a small dip or something really bad?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm not able to discuss credit scores. Let's get back to your payment."
+    },
+    {
+      "role": "customer",
+      "text": "Alright, then can you tell me if making the payment late will have any impact on my credit history at all?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm not able to discuss credit scores. Let's get back to your payment."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, then can you explain what happens if I delay the payment further? Will there be penalties or extra charges?"
+    },
+    {
+      "role": "bot",
+      "text": "You\u2019ll be charged interest each month while there\u2019s an unpaid balance. There may also be a late fee. Would you like details of your minimum due, interest, and late fee for this cycle?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, please. Can you tell me how much the minimum due is and what extra charges I might have to pay?"
+    },
+    {
+      "role": "bot",
+      "text": "Your minimum amount due is 4,820 rupees. That includes interest of 645 rupees, and a late fee of 750 rupees, since the due date was 15th October. When do you think you could manage the payment?"
+    },
+    {
+      "role": "customer",
+      "text": "Thanks for the info. I might be able to pay by the 25th of October. Would that still be okay?"
+    },
+    {
+      "role": "bot",
+      "text": "Just to clarify, today is the 28th October. Did you mean the 25th November, or did you already make the payment on the 25th October?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I meant the 25th of November. Sorry for the confusion."
+    },
+    {
+      "role": "bot",
+      "text": "Thanks for clarifying. Since the 25th November is more than two weeks from now, I'd need to schedule a callback. Would you like me to arrange for a human support agent to discuss options with you?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, please arrange that callback. I want to understand all my options before making the payment."
+    }
+  ]
+}

@@ -68,6 +68,7 @@ FLAG_LABELS = {
     "guardrail_triggered": "Guardrail fired",
     "waiver_requested": "Waiver request",
     "stt_unclear": "Unclear audio",
+    "do_not_call": "Asked not to be called",
 }
 
 # Default follow-up gap when the customer gave no usable date. Labelled as
@@ -403,7 +404,8 @@ GUARDRAIL_RULE_LABELS = {
 _PRE_IDENTITY_TOPIC_RE = re.compile(
     r"\b(payment|due|amount|balance|outstanding|fee|interest|waive|waiver|discount|approve|"
     r"human agent|call you back about)\b", re.I)
-_IDENTITY_END_LINES = ("i'll call back later", "not able to verify your identity")
+_IDENTITY_END_LINES = ("i'll call back later", "not able to verify your identity", "wrong number",
+                       "better time i could reach")
 
 
 def _identity_turn(transcript: list[dict]) -> tuple[int | None, str | None]:
@@ -549,7 +551,7 @@ def merge_unclear_turns(transcript: list[dict], stt_turns: list[dict]) -> list[d
     return out
 
 
-_GATE_LINE_STARTS = (*prompting.UNCLEAR_REASKS, "Sorry, I didn't catch that. Am I speaking to",
+_GATE_LINE_STARTS = (*prompting.UNCLEAR_REASKS, "Sorry, I didn't catch that.",
                      prompting.AUDIO_GLITCH, prompting.IDENTITY_GLITCH)
 
 

@@ -39,12 +39,21 @@ CANNED_LINES = {
         "Let me give you the correct figures: interest is 3.5% per month, and the late fee is "
         "Rs 750 if your balance is above Rs 10,000."
     ),
+    "no_banned_phrase": "Let's figure out what works for you. When would suit you to make the payment?",
+    "no_balance_pre_otp": prompting.OTP_ASK,  # the caller also marks the code as requested
     "no_debt_pre_identity": (
         "I'm sorry, I can only discuss this with the account holder. I'll call back another time."
     ),
 }
 
-_CIBIL_RE = re.compile(r"\b(cibil|credit score|credit rating|credit history)\b", re.I)
+_CIBIL_RE = re.compile(r"\b(cibil|credit scores?|credit ratings?|credit history)\b", re.I)
+# voice-guide.md §11, banned outright. "police" and "court" are already
+# no_legal_threat; the rest are the guide's intimidation phrases.
+_BANNED_RE = re.compile(
+    r"\b(final warning|last chance|blacklist(?:ed)?|you have no choice|we will visit|we'?ll visit|"
+    r"your reputation|this is serious|why didn'?t you pay|arrest(?:ed)?|inform your (?:employer|family))\b",
+    re.I,
+)
 _LEGAL_RE = re.compile(r"\b(legal action|court|lawyer|notice|police|recovery agent|seize)\b", re.I)
 _WAIVER_RE = re.compile(r"\b(waive|waiver|discount|settlement|reduce|forgive)\b", re.I)
 _OTHER_PRODUCTS_RE = re.compile(
@@ -114,12 +123,22 @@ def without_scripted_lines(text: str, customer: dict | None) -> str:
     waiver refusal tripped no_waiver_grant and the call was escalated to
     compliance. Only exact lines are exempt; a paraphrase is still checked."""
     out = _norm_line(text)
-    for line in sorted(prompting.scripted_lines(customer), key=len, reverse=True):
+    # The canned refusals too: "I'm not able to discuss credit scores" must
+    # not count as discussing them.
+    lines = [*prompting.scripted_lines(customer), *CANNED_LINES.values()]
+    for line in sorted(lines, key=len, reverse=True):
         out = out.replace(_norm_line(line), " ")
     return " ".join(out.split())
 
 
-def check_deterministic(text: str, *, identity_confirmed: bool, customer: dict) -> GuardrailResult:
+def _says_total(text: str, customer: dict) -> bool:
+    """The brief: never reveal the account balance without OTP verification."""
+    total = float(customer["total_outstanding"])
+    return any(_figure(m) == total for m in _RUPEE_FIGURE_RE.finditer(text))
+
+
+def check_deterministic(text: str, *, identity_confirmed: bool, customer: dict,
+                        otp_verified: bool = False) -> GuardrailResult:
     """Runs the full §7 rule table against one candidate bot utterance."""
     spoken = text
     text = without_scripted_lines(text, customer)
@@ -131,12 +150,16 @@ def check_deterministic(text: str, *, identity_confirmed: bool, customer: dict) 
         return GuardrailResult(True, "no_legal_threat", "block", CANNED_LINES["no_legal_threat"])
     if _WAIVER_RE.search(text):
         return GuardrailResult(True, "no_waiver_grant", "block", CANNED_LINES["no_waiver_grant"])
+    if _BANNED_RE.search(text):
+        return GuardrailResult(True, "no_banned_phrase", "block", CANNED_LINES["no_banned_phrase"])
     if _OTHER_PRODUCTS_RE.search(text):
         return GuardrailResult(True, "no_other_products", "block", CANNED_LINES["no_other_products"])
     if _check_wrong_facts(text):
         return GuardrailResult(True, "no_wrong_facts", "block", CANNED_LINES["no_wrong_facts"])
     if not identity_confirmed and _DEBT_TERMS_RE.search(text):
         return GuardrailResult(True, "no_debt_pre_identity", "block", CANNED_LINES["no_debt_pre_identity"])
+    if not otp_verified and _says_total(text, customer):
+        return GuardrailResult(True, "no_balance_pre_otp", "block", CANNED_LINES["no_balance_pre_otp"])
     if _check_unknown_figure(text, customer):
         return GuardrailResult(True, "no_unknown_figure", "block", CANNED_LINES["no_unknown_figure"])
     if _CARD_RE.search(text):

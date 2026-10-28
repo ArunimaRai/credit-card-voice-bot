@@ -1,0 +1,46 @@
+{
+  "call_id": "P08-v1-998924",
+  "persona_id": "P08",
+  "archetype": "hardship-joblessness",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "hardship - job loss",
+    "category": "hardship"
+  },
+  "duration_sec": 9.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's the one, but I\u2019m really struggling right now."
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "No, not really. I lost my job a few weeks ago, so I don\u2019t have any money coming in."
+    },
+    {
+      "role": "bot",
+      "text": "I'm really sorry you're going through this. Please don't worry about this call right now. Would you like a callback from a human agent to help you through this?"
+    },
+    {
+      "role": "customer",
+      "text": "I appreciate that, but I\u2019m not sure a callback will help. I just don\u2019t have any money to pay right now."
+    }
+  ]
+}

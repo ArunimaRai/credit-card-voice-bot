@@ -1,0 +1,86 @@
+{
+  "call_id": "P07-v1-996173",
+  "persona_id": "P07",
+  "archetype": "cross-sell-probe",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2026-10-28",
+    "amount": 4820
+  },
+  "duration_sec": 31.9,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's my card. I actually wanted to ask about a festive loan offer I saw advertised recently. Can you tell me more about it?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I wasn\u2019t aware of that. I need to check on that. Meanwhile, could you tell me more about the festive loan offer? What are the interest rates and terms?"
+    },
+    {
+      "role": "bot",
+      "text": "I see. About your other question\u2014I'm only here for your pending payment. For info on loans, please visit a branch or call the helpline.\n\nWould you like me to send a secure payment link for your card now, or would you prefer to check and call back?"
+    },
+    {
+      "role": "customer",
+      "text": "I'd appreciate if you could send the payment link now. Also, while we're at it, could you tell me what the current fixed deposit interest rates are? I'm thinking of investing some savings."
+    },
+    {
+      "role": "bot",
+      "text": "I\u2019m here just for your credit card payment today. For other products, it\u2019s best to reach out to a branch or our helpline.\n\nOnce you get the payment link, do you want to pay right away, or should I call you back at a better time?"
+    },
+    {
+      "role": "customer",
+      "text": "Please send the payment link now. But since you mentioned the helpline, can you give me the number for the helpline? I want to call about the FD rates and maybe a credit limit increase."
+    },
+    {
+      "role": "bot",
+      "text": "Okay, I\u2019ll send the secure payment link to your registered number now.\n\nFor your other queries, you can find our helpline number on the Mumbai Bank website.\n\nWould you like me to wait on the line while you pay, or should I call you back later to check in?"
+    },
+    {
+      "role": "customer",
+      "text": "I think I'll try the payment now. Please hold while I complete it. Also, if you could stay on the line for a few minutes afterward, I have a couple more quick questions."
+    },
+    {
+      "role": "bot",
+      "text": "No problem, I'll wait while you try the payment.\n\nJust so you know, I can only help with your card payment today. For other questions after, I\u2019ll guide you on how to get more help.\n\nLet me know once you\u2019re done, or if anything comes up. Do you need any details about the minimum amount due or late fee?"
+    },
+    {
+      "role": "customer",
+      "text": "Thanks, I\u2019m almost done with the payment. Before I finish, can you confirm the minimum amount due on my card this month? I want to make sure I cover at least that."
+    },
+    {
+      "role": "bot",
+      "text": "Sure. Your minimum amount due is 4,820 rupees. That includes interest and a late fee of 750 rupees.\n\nLet me know once you\u2019ve completed the payment."
+    },
+    {
+      "role": "customer",
+      "text": "Okay, thanks for that. I\u2019m completing the payment now. I appreciate you waiting. After this, I wanted to ask\u2014how do I go about requesting a credit limit increase on my card?"
+    },
+    {
+      "role": "bot",
+      "text": "I can\u2019t assist with credit limit increases, but our helpline or branch staff will guide you.\n\nJust checking\u2014will you be paying 4,820 rupees today? Would you like me to note it as done?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, I\u2019m paying the full 4,820 rupees today. Please note it as done. And thank you for your help so far. I\u2019ll contact the helpline about the credit limit increase and FD rates."
+    }
+  ]
+}

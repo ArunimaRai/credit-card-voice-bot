@@ -1,0 +1,29 @@
+{
+  "call_id": "P14-v1-15312",
+  "persona_id": "P14",
+  "archetype": "language-barrier",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "Hindi language - customer requested Hindi-speaking agent"
+  },
+  "duration_sec": 5.6,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Namaste, mujhe English samajh nahi aati. Hindi mein baat kijiye."
+    },
+    {
+      "role": "bot",
+      "text": "I understand. I can arrange a callback from a Mumbai Bank agent who speaks Hindi. Would you like that?"
+    },
+    {
+      "role": "customer",
+      "text": "Ji haan, kripya mujhe Hindi mein baat karne wala agent call kare. Shukriya."
+    }
+  ]
+}

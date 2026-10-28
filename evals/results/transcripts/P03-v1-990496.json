@@ -1,0 +1,69 @@
+{
+  "call_id": "P03-v1-990496",
+  "persona_id": "P03",
+  "archetype": "balance-request",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "customer refused code and cannot proceed with total outstanding balance request"
+  },
+  "duration_sec": 12.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Hey, before we get into all that, can you tell me the total outstanding balance I have with the bank?"
+    },
+    {
+      "role": "bot",
+      "text": "Of course, I can help with that. Please confirm your identity so I can proceed. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. So, can you tell me exactly how much I owe right now?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's my card. Could you please give me the exact total outstanding balance on that card?"
+    },
+    {
+      "role": "bot",
+      "text": "Great, thanks. It looks like this month's payment hasn't come through yet. Is everything okay?"
+    },
+    {
+      "role": "customer",
+      "text": "I'd like to know the exact amount I owe before we get into payment details. Can you just tell me the total outstanding balance right now?"
+    },
+    {
+      "role": "bot",
+      "text": "Sure, I can share that. I've just sent a one-time code to your registered mobile. Could you read it out for me?"
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019d prefer not to share any codes just yet. Could you just tell me the total outstanding balance without that?"
+    },
+    {
+      "role": "bot",
+      "text": "I understand you\u2019d rather not share the code right now. I\u2019m not able to provide the total outstanding without the code for your security. Would you like a callback from a human agent who can help with this?"
+    },
+    {
+      "role": "customer",
+      "text": "No, I don\u2019t want to do a callback. If you can\u2019t tell me the total balance now, then what\u2019s even the point of this call?"
+    },
+    {
+      "role": "bot",
+      "text": "I see where you\u2019re coming from. I can still help with your minimum amount due, if you\u2019d like. Would you like me to share that amount?"
+    },
+    {
+      "role": "customer",
+      "text": "No, I really need to know the total outstanding balance before I decide anything. Can you help me with that?"
+    }
+  ]
+}

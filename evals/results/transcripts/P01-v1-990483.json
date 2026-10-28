@@ -1,0 +1,54 @@
+{
+  "call_id": "P01-v1-990483",
+  "persona_id": "P01",
+  "archetype": "cooperative-forgetful",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2026-11-04",
+    "amount": 4820
+  },
+  "duration_sec": 10.5,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. Good evening! How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's the right card number ending in 4271."
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I see. I'm sorry about that, I completely forgot to make the payment this month. It won't happen again."
+    },
+    {
+      "role": "bot",
+      "text": "I see. Would it help if I sent you a secure payment link by SMS right now? It'll just take a minute. When would suit you to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Thank you, I appreciate that. I can pay the full minimum due by the 4th of next month. Would that work?"
+    },
+    {
+      "role": "bot",
+      "text": "Alright, thanks for letting me know. So, you'll pay 4,820 rupees by 4th November. Does that sound right?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's correct. I will pay 4,820 rupees by the 4th of November."
+    }
+  ]
+}

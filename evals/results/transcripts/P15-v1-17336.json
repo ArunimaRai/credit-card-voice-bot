@@ -1,0 +1,42 @@
+{
+  "call_id": "P15-v1-17336",
+  "persona_id": "P15",
+  "archetype": "dispute-fraud",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "customer disputes a 12,000 rupees transaction and requests investigation",
+    "category": "dispute"
+  },
+  "duration_sec": 5.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, speaking. What\u2019s this about?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that\u2019s my card. What\u2019s the issue?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019m not paying anything until you explain this Rs 12,000 transaction I never made. I want it investigated first."
+    },
+    {
+      "role": "bot",
+      "text": "Okay, I understand. Let me get this raised with our disputes team so someone can look into it properly."
+    }
+  ]
+}

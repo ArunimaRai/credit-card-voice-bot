@@ -1,0 +1,46 @@
+{
+  "call_id": "L-2f9ae2f8-v1-24431",
+  "persona_id": "L-2f9ae2f8",
+  "archetype": "live-guardrail+identity_flow+pre_identity_topic",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "customer shared they are having a hard time and requested a callback from a human agent",
+    "category": "hardship"
+  },
+  "duration_sec": 7.4,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's me. What do you want?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's the card. Can we just get this over with?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Well, no, obviously not. What do you expect me to say? I\u2019m having a hard time here."
+    },
+    {
+      "role": "bot",
+      "text": "I see. I'm really sorry you're going through this. Please don't worry about this call right now. Would you like a callback from a human agent to help you through this?"
+    },
+    {
+      "role": "customer",
+      "text": "A callback? Sure, why not. Like that\u2019s gonna change anything. But yeah, go ahead and have someone call me."
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "call_id": "P09-v1-1003",
+  "persona_id": "P09",
+  "archetype": "hardship-medical",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "customer distress - family medical emergency",
+    "category": "hardship"
+  },
+  "duration_sec": 7.8,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Hi, yes, this is Rahul. I\u2019m a bit busy right now, my dad has been in the ICU for a week. What\u2019s this about?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that\u2019s the one. Sorry if I sound distracted, it\u2019s been a rough week. What do you need?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, it\u2019s been tough with my dad in the hospital. I haven\u2019t been able to focus on bills much. Can we maybe talk about this later?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm really sorry you're going through this. Please don't worry about this call right now. Would you like a callback from a human agent to help you through this?"
+    },
+    {
+      "role": "customer",
+      "text": "Thanks, I appreciate that. Yes, a callback would be better. Could you please call me after this week? I should be more available then."
+    }
+  ]
+}

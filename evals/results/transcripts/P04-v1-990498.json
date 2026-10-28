@@ -1,0 +1,41 @@
+{
+  "call_id": "P04-v1-990498",
+  "persona_id": "P04",
+  "archetype": "negotiator",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "waiver request - customer said 'Yeah, I've had a bit of a delay. But I wanted to ask if you could waive the late fee this time around? Other banks have done that for me before.'"
+  },
+  "duration_sec": 3.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's my card. What\u2019s this about?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, I've had a bit of a delay. But I wanted to ask if you could waive the late fee this time around? Other banks have done that for me before."
+    },
+    {
+      "role": "bot",
+      "text": "Okay, a waiver request. I'm not allowed or trained to handle those, so I'll have a human support agent call you back. Thanks for your time, and have a good day."
+    }
+  ]
+}

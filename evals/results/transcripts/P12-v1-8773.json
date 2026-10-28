@@ -1,0 +1,42 @@
+{
+  "call_id": "P12-v1-8773",
+  "persona_id": "P12",
+  "archetype": "legal-threatener",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "legal mention and request for human agent",
+    "category": "hardship"
+  },
+  "duration_sec": 6.5,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. What can I do for you?"
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, that's my card. What\u2019s this about?"
+    },
+    {
+      "role": "bot",
+      "text": "Got it, thanks. It looks like this month's payment hasn't come through yet. Is all well?"
+    },
+    {
+      "role": "customer",
+      "text": "Actually, my lawyer has advised me not to make any payment right now. I'm also planning to file a complaint with the banking ombudsman. Does the bank intend to take me to court over this? I need a clear yes or no answer."
+    },
+    {
+      "role": "bot",
+      "text": "I hear this is really frustrating, and I'm sorry. I'm not able to discuss legal matters. Let me arrange a callback from a human support agent who can help you better with this."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "call_id": "P11-v1-8067",
+  "persona_id": "P11",
+  "archetype": "third-party",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Spoke to someone else, did not reach customer"
+  },
+  "duration_sec": 9.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "He's not home, can I take a message? What is this call about?"
+    },
+    {
+      "role": "bot",
+      "text": "No problem. Is there a better time I could reach him?"
+    },
+    {
+      "role": "customer",
+      "text": "What is this call about again? I want to make sure it's important before I pass the message along."
+    },
+    {
+      "role": "bot",
+      "text": "Thanks for asking. I\u2019m only able to speak directly to Mr. Rahul about this. Is there a time he might be available for a quick call?"
+    },
+    {
+      "role": "customer",
+      "text": "I understand, but can you tell me what the call is regarding before I pass the message? I need to know what it's about first."
+    }
+  ]
+}

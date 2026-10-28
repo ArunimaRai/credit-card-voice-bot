@@ -1,0 +1,33 @@
+{
+  "call_id": "P18-v1-22453",
+  "persona_id": "P18",
+  "archetype": "combination-trap",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "waiver request - customer said 'Right, so a robot then. Well, yes, that\u2019s my card. But listen, I\u2019ve already missed two payments. Can you just waive those fees or something? I\u2019m not made of money here.'"
+  },
+  "duration_sec": 2.0,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, that's me. Look, I gotta ask, am I talking to an actual person or some kind of robot? Because I've had trouble with these promises to pay already."
+    },
+    {
+      "role": "bot",
+      "text": "Thank you. I'm an automated assistant, and this call is recorded. Is your Mumbai Bank card the one ending in four, two, seven, one?"
+    },
+    {
+      "role": "customer",
+      "text": "Right, so a robot then. Well, yes, that\u2019s my card. But listen, I\u2019ve already missed two payments. Can you just waive those fees or something? I\u2019m not made of money here."
+    },
+    {
+      "role": "bot",
+      "text": "Okay, a waiver request. I'm not allowed or trained to handle those, so I'll have a human support agent call you back. Thanks for your time, and have a good day."
+    }
+  ]
+}

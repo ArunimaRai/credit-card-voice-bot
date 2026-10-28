@@ -56,7 +56,7 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.workers.runner import WorkerRunner
 
 from bot import analysis, guardrails, turn_gate
-from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt, opening_line
+from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt, opening_line, speakable
 from bot.schema import validate_outcome
 from bot.state import CallState
 from bot.tools import RECORD_OUTCOME
@@ -111,11 +111,17 @@ class GuardrailProcessor(FrameProcessor):
                     text,
                     identity_confirmed=self._state.identity_confirmed,
                     customer=self._customer,
+                    otp_verified=self._state.otp_verified,
                 )
                 if result.triggered:
                     logger.warning(f"L4 guardrail triggered: {result.rule} — substituting safe line")
                     self.triggers.append({"turn": self._state.turn_count, "rule": result.rule, "action": "substituted"})
                     text = result.safe_text
+                    if result.rule == "no_balance_pre_otp":
+                        self._state.otp_requested = True
+                # Amounts as words for TTS, after the check has seen the digits
+                # (voice-guide.md §4).
+                text = speakable(text)
 
             if start_frame is not None:
                 await self.push_frame(start_frame, direction)
@@ -250,7 +256,7 @@ class TurnGate(FrameProcessor):
             # Clear speech the gate answered itself: the LLM still needs to
             # know it was said.
             self._context.add_message({"role": "user", "content": frame.text})
-        frames: list[Frame] = [TTSSpeakFrame(gate.line)]
+        frames: list[Frame] = [TTSSpeakFrame(speakable(gate.line))]
         if gate.outcome is not None:
             await self._on_outcome(gate.outcome)
         if gate.end_call:
@@ -553,7 +559,6 @@ if __name__ == "__main__":
             raise HTTPException(status_code=404, detail="unknown call")
         return entry
 
-    main()
     # Guidelines, Personas and Analytics pages: recomputed from disk on every request.
     @runner_app.get("/pages.js", include_in_schema=False)
     async def _serve_pages():
@@ -568,3 +573,4 @@ if __name__ == "__main__":
             raise HTTPException(status_code=404, detail="unknown page")
         return views[page]()
 
+    main()

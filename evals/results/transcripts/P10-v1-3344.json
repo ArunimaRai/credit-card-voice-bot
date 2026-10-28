@@ -1,0 +1,30 @@
+{
+  "call_id": "P10-v1-3344",
+  "persona_id": "P10",
+  "archetype": "abusive-escalating",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "customer used continued abuse and does not want further calls",
+    "category": "abuse"
+  },
+  "duration_sec": 8.2,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hi, good evening! This is Shreya calling from Mumbai Bank. Am I speaking with Mr. Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Why do you people keep calling me all the damn time? I told you already, I\u2019m not interested."
+    },
+    {
+      "role": "bot",
+      "text": "Sorry about that. Would you like me to note a better time to reach you, or a different way to contact you?"
+    },
+    {
+      "role": "customer",
+      "text": "No, I don\u2019t want you calling me at all, you annoying fucks. Stop wasting my time."
+    }
+  ]
+}

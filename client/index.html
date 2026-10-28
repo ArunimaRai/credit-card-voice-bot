@@ -1152,6 +1152,16 @@
         title: "Shreya's accent",
         text: "We would have liked Shreya to speak with an Indian accent. To keep this demo simple I've used OpenAI's voice, which doesn't support an Indian accent.",
       },
+      otp: {
+        kind: "Demo note",
+        title: "Any six-digit code works",
+        text: "In a real call the bank texts a one-time code before Shreya shares the total. For this demo no code is sent, so read out any six digits to continue.",
+      },
+      link: {
+        kind: "Demo note",
+        title: "The payment link",
+        text: "Shreya offers an SMS payment link to close the loop, which is the intended behaviour. This demo doesn't send a real SMS.",
+      },
       evals: {
         kind: "How it works",
         title: "Agent performance feeds the evals",
@@ -1695,6 +1705,9 @@ void main() {
             currentCall.transcript.push(pendingBot);
           }
           if (data.text !== pendingBot.text) { pendingBot.text = data.text; renderTranscript(); }
+          // Demo notes for the two steps this demo only simulates.
+          if (/one-time code/i.test(data.text || "")) showGapNote("otp");
+          if (/payment link/i.test(data.text || "")) showGapNote("link");
         },
         onServerMessage: (data) => {
           // Populated once bot/main.py's record_outcome() sends it. Older
