@@ -13,9 +13,9 @@ Use the token, never a raw value, when one exists.
    orb shader. Surfaces pick up a *faint* tint of those colours, not a strong one.
 2. **Calm, flat and professional.** Soft gradients are a tint, not an effect. No 3D bevels,
    inner shadows or glossy highlights on cards, chips or bubbles.
-3. **One dark primary.** The dark pill used by Start Speaking is the only primary or
-   "selected" style. Anything the user is meant to press next, or anything currently
-   selected in a segmented control, uses it.
+3. **One dark primary, one white secondary.** The dark pill (Start Speaking, + New call) is
+   the only primary style: it marks the action the user should take next. A selected
+   segment in a toggle is a secondary state and stays white (see §4).
 4. **Motion means a live call.** The orb, halo and contact shadow move only while a call is
    connecting or live. Before the first call and after a call ends, everything holds still.
 
@@ -53,25 +53,32 @@ dispute dot, the connecting dot).
 
 ### Strong wash (one highlighted block inside a card)
 - Background: `var(--orb-wash-strong)` (about 7–9% alpha), border `var(--accent-100)`, radius 14px.
-- Used by the follow-up row `.an-follow`. Its "no follow-up" variant is flat `--surface-2`.
+- Used by the follow-up row `.an-follow` and the walkthrough note. Its "no follow-up" variant is flat `--surface-2`.
 - Use at most one per card.
 
-### Gap note (walkthrough pop-up)
-A small card that points out a place where the demo knowingly falls short of production,
-shown at the moment the viewer runs into it, so the gap is ours to name before they notice it.
-- Fixed to the bottom-right corner, over the transcript side so it never covers the call
-  button (24px in, 16px below 860px), `min(360px, 100vw - 32px)` wide.
-- Orb wash on an opaque `--surface` base (it floats over content), `--orb-line` border, `--card-shadow` plus `--shadow-md`, radius 20px. Enters with `riseIn`.
-- An uppercase "Demo note" label in `--accent-700` with an `--accent-500` dot, 14px body text,
-  a "Known gap n of m" step in `--ink-3`, and a compact dark-pill **Got it** button.
+### Walkthrough note (pop-up)
+A card shown at the moment the viewer reaches something worth a word: either a place where
+the demo knowingly falls short of production ("Demo note"), so the gap is ours to name
+before they notice it, or what a feature on screen does ("How it works").
+- Fixed to the top-right corner, just under the header (`top: 84px; right: 24px`, 72px/16px
+  below 860px), `min(440px, 100vw - 32px)` wide. It is meant to be seen, so it sits where
+  the eye lands and can cover the panel header until dismissed.
+- Strong orb wash on an opaque `--surface` base (it floats over content), `--accent-100`
+  border, `--card-shadow` plus a deeper indigo drop, radius 22px.
+- Enters with `noteIn`: slides in from the top right (translate 32px, -20px, scale 0.96)
+  over 0.6s on `--ease-smooth`, `transform-origin: top right`.
+- An uppercase kind label (12px, `--accent-700`, ringed `--accent-500` dot), a 19px/600
+  title, 16px body in `--ink-2`, a "Note n of m" step in `--ink-3`, and a dark-pill **Got it**
+  button (10px × 20px, 14px).
 - It never blocks the call: no backdrop, and the call stays usable underneath.
 - Each note is shown once per page load. Several queue, one at a time.
-- Add a gap by adding an entry to `GAP_NOTES` in `client/index.html` and calling
-  `showGapNote(key)` where it happens. Keep the copy to two plain sentences.
+- Add a note by adding `{ kind, title, text }` to `GAP_NOTES` in `client/index.html` and
+  calling `showGapNote(key)` where it happens. Keep the copy to two plain sentences.
 
-| Key | Shown when | Says |
-| --- | --- | --- |
-| `accent` | Shreya first speaks on a call | We'd have liked an Indian accent; the demo uses OpenAI's voice for simplicity, which doesn't support one. |
+| Key | Kind | Shown when | Says |
+| --- | --- | --- | --- |
+| `accent` | Demo note | Shreya first speaks on a call | We'd have liked an Indian accent; the demo uses OpenAI's voice for simplicity, which doesn't support one. |
+| `evals` | How it works | The Agent performance card first renders | Code checks review Shreya's side of every call; each issue is queued as an eval case so the next prompt version is tested against it. |
 
 **Do not** raise the wash alphas above the token values, add `inset` shadows, or stack
 `linear-gradient` highlights on top. If a surface needs more emphasis, use a border or
@@ -85,11 +92,18 @@ Tokens: `--cta-bg`, `--cta-border`, `--cta-ink`, `--cta-shadow`, `--cta-shadow-h
 | Component | Where | Notes |
 | --- | --- | --- |
 | `.call-btn` (Start Speaking) | Orb panel | 15px × 30px padding, 16px/500 type. Shown only on the home screen. |
-| `.new-call-btn` (+ New call) | Header, right | Same pill, compact (8px × 16px, 13px). Replaces the status pill after a call ends. |
-| `.tabs button[aria-selected="true"]` | Analysis / Transcript toggle | The selected segment is the dark pill. The track is plain white with a `--line` border. Unselected segments are text only in `--ink-2`. |
+| `.new-call-btn` (+ New call) | Header, right | Same size as Start Speaking (16px/500, 19px icon, about 48px tall). Replaces the status pill after a call ends. |
 
 Hover: lift 1px and use `--cta-shadow-hover`. Active: `scale(0.97)`.
 Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
+
+### Secondary: the white segmented toggle
+Used for switching views, never for "do this next".
+
+| Component | Where | Notes |
+| --- | --- | --- |
+| `.tabs` | Analysis / Transcript toggle | White track, `--line` border, 3px padding. Segments 13px/500, 7px × 16px, unselected text in `--ink-2`. |
+| `.tabs button[aria-selected="true"]` | | Stays white. Marked by `--accent-700` text at 600, a 1px `--accent-300` ring and a soft indigo drop. Never the dark fill. |
 
 ### State variants of the call button
 - `data-mode="hangup"`: coral fill, hang-up icon.
@@ -98,6 +112,17 @@ Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
 ### Chips and pills
 - `.chip`: white, `--line` border, 11.5px/500. Tone variants `.warn` and `.bad` use the status families.
 - `.sent-pill`: a flat tint and its matching border. Neutral uses `--accent-50`, frustrated uses `--red-50`, positive uses `--live-50`. No gradients.
+- Severity chips (Agent performance): Critical `.chip.bad`, Major `.chip.warn`, Minor plain `.chip`.
+
+### Analysis card order
+Outcome (hero) → Customer sentiment + Workflow (grid) → **Call summary** → **Agent performance** → footnote.
+
+Agent performance (`performanceHtml`) shows code-only checks on Shreya's own handling of
+the call (`review_agent` in `bot/analysis.py`). The head row is the `.an-k` label with a
+"n checks · m issues" count in `--ink-3`. Each `.an-issue` row is a severity chip, a 14px/600
+title, a 13.5px detail, the offending turn as an `.an-quote` (bot fill when it's Shreya's
+turn, field names in `<code>`), and an "Queued as eval case · `name`" line with the eval in an
+`--accent-50` code tag. With no issues it shows a teal tick and "No issues on this call".
 
 ## 5. Conversation bubbles
 
@@ -155,7 +180,7 @@ Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
 ## 11. Checklist for any UI change
 
 - [ ] Uses existing tokens. Any new colour is added to `:root` and to this file.
-- [ ] Primary or selected controls use the dark CTA pill, and nothing else does.
+- [ ] Primary actions use the dark CTA pill; selected toggle segments use the white secondary style.
 - [ ] Cards and chips use the orb wash with no inset shadows or glossy highlights.
 - [ ] Speaker colours use the bubble tokens, and no hue outside the orb palette appears.
 - [ ] Nothing animates in `idle` or `ended`.

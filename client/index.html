@@ -129,14 +129,14 @@
     }
     .status-pill[hidden], .new-call-btn[hidden] { display: none; }
     .new-call-btn {
-      display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
-      padding: 8px 16px 8px 12px; border-radius: 99px;
+      display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
+      padding: 13px 28px 13px 24px; border-radius: 99px;
       background: var(--cta-bg); border: 1px solid var(--cta-border); box-shadow: var(--cta-shadow);
-      font-size: 13px; font-weight: 500; color: var(--cta-ink); white-space: nowrap;
+      font: inherit; font-size: 16px; font-weight: 500; letter-spacing: -0.01em; color: var(--cta-ink); white-space: nowrap;
       animation: riseIn 0.4s var(--ease-smooth) both;
       transition: transform 0.2s var(--ease-out-quint), border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    .new-call-btn svg { width: 15px; height: 15px; }
+    .new-call-btn svg { width: 19px; height: 19px; }
     .new-call-btn:hover { transform: translateY(-1px); box-shadow: var(--cta-shadow-hover); }
     .new-call-btn:active { transform: scale(0.97); }
     .new-call-btn:focus-visible { outline: 2px solid var(--accent-600); outline-offset: 2px; }
@@ -319,11 +319,12 @@
     .tabs button {
       border: none; background: transparent; cursor: pointer;
       font-size: 13px; font-weight: 500; color: var(--ink-2);
-      padding: 6px 15px; border-radius: 99px;
+      padding: 7px 16px; border-radius: 99px;
       transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
     }
     .tabs button:not([aria-selected="true"]):hover { color: var(--ink); }
-    .tabs button[aria-selected="true"] { background: var(--cta-bg); color: var(--cta-ink); box-shadow: 0 6px 14px -8px rgba(21, 22, 26, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+    /* secondary pattern: the selected segment stays white and is marked by an indigo ring and ink, not the dark CTA fill */
+    .tabs button[aria-selected="true"] { background: var(--surface); color: var(--accent-700); font-weight: 600; box-shadow: 0 0 0 1px var(--accent-300), 0 6px 14px -8px rgba(64, 51, 176, 0.45); }
     .tabs button:focus-visible, .an-quote:focus-visible { outline: 2px solid var(--accent-600); outline-offset: 2px; }
 
     .tp-body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 32px 28px; scroll-behavior: smooth; }
@@ -436,6 +437,22 @@
     .an-none { color: var(--ink-3); font-weight: 400; }
 
     .an-summary { font-size: 14.5px; line-height: 1.6; margin-top: 10px; }
+
+    .an-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .an-count { font-size: 12.5px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+    .an-pass { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--ok-700); }
+    .an-pass svg { width: 18px; height: 18px; flex-shrink: 0; }
+    .an-issues { display: flex; flex-direction: column; margin-top: 6px; }
+    .an-issue { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; padding: 14px 0; border-top: 1px solid var(--line-soft); }
+    .an-issue:first-child { border-top: none; }
+    .an-issue .chip { align-self: start; margin-top: 1px; }
+    .an-issue-title { font-size: 14px; font-weight: 600; }
+    .an-issue-detail { grid-column: 2; font-size: 13.5px; color: var(--ink-2); line-height: 1.5; }
+    .an-issue .an-quote { grid-column: 2; justify-self: start; margin-top: 6px; }
+    .an-issue .an-quote.bot { background: var(--bubble-bot); border-radius: 14px 14px 14px 4px; }
+    .an-issue .an-quote code { font-family: var(--font-mono); font-size: 12.5px; }
+    .an-eval { grid-column: 2; display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 12px; color: var(--ink-3); }
+    .an-eval code { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent-700); background: var(--accent-50); padding: 1px 6px; border-radius: 6px; }
     .an-foot { font-size: 12px; color: var(--ink-3); line-height: 1.55; padding: 0 4px; }
     .an-foot a { color: var(--accent-700); }
     .an-note { font-size: 13px; color: var(--ink-2); padding: 12px 14px; border: 1px dashed var(--line); border-radius: 14px; }
@@ -453,22 +470,24 @@
     }
     .error-banner.show { display: block; }
 
-    /* ---------- gap note: walkthrough pop-up that calls out a known gap ---------- */
+    /* ---------- walkthrough note: pop-up that explains a feature or calls out a known gap ---------- */
+    @keyframes noteIn { from { opacity: 0; transform: translate(32px, -20px) scale(0.96); } to { opacity: 1; transform: none; } }
     .gap-note {
-      position: fixed; right: 24px; bottom: 24px; z-index: 50; width: min(360px, calc(100vw - 32px));
-      padding: 18px 20px 16px; border-radius: 20px;
-      background: var(--orb-wash); background-color: var(--surface); /* opaque: it floats over content */
-      border: 1px solid var(--orb-line); box-shadow: var(--card-shadow), var(--shadow-md);
-      animation: riseIn 0.45s var(--ease-smooth) both;
+      position: fixed; right: 24px; top: 84px; z-index: 50; width: min(440px, calc(100vw - 32px));
+      padding: 24px 26px 20px; border-radius: 22px; transform-origin: top right;
+      background: var(--orb-wash-strong); background-color: var(--surface); /* opaque: it floats over content */
+      border: 1px solid var(--accent-100); box-shadow: var(--card-shadow), 0 30px 70px -28px rgba(37, 7, 133, 0.38);
+      animation: noteIn 0.6s var(--ease-smooth) both;
     }
     .gap-note[hidden] { display: none; }
-    .gap-note .gn-k { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent-700); }
-    .gap-note .gn-k::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--accent-500); }
-    .gap-note p { margin: 8px 0 14px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+    .gap-note .gn-k { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--accent-700); }
+    .gap-note .gn-k::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent-500); box-shadow: 0 0 0 4px var(--accent-100); }
+    .gap-note h3 { margin: 12px 0 0; font-size: 19px; font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+    .gap-note p { margin: 8px 0 18px; font-size: 16px; line-height: 1.55; color: var(--ink-2); }
     .gap-note .gn-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .gap-note .gn-step { font-size: 12px; color: var(--ink-3); }
+    .gap-note .gn-step { font-size: 13px; color: var(--ink-3); }
     .gap-note button {
-      font: inherit; font-size: 13px; font-weight: 500; padding: 8px 16px; border-radius: 99px; cursor: pointer;
+      font: inherit; font-size: 14px; font-weight: 500; padding: 10px 20px; border-radius: 99px; cursor: pointer;
       background: var(--cta-bg); color: var(--cta-ink); border: 1px solid var(--cta-border); box-shadow: var(--cta-shadow);
       transition: transform 0.2s var(--ease-out-quint), box-shadow 0.2s var(--ease-out-quint);
     }
@@ -492,7 +511,7 @@
       .tp-head { padding: 20px 20px 14px; }
       .tp-body { padding: 20px; max-height: 70vh; min-height: 360px; }
       .error-banner { margin: 0 20px 16px; }
-      .gap-note { right: 16px; bottom: 16px; }
+      .gap-note { right: 16px; top: 72px; }
       .msg { max-width: 88%; }
       .bubble { font-size: 15.5px; padding: 13px 18px; }
     }
@@ -599,7 +618,8 @@
       </section>
     </main>
     <aside class="gap-note" id="gapNote" role="status" aria-live="polite" hidden>
-      <div class="gn-k">Demo note</div>
+      <div class="gn-k" id="gapNoteKind">Demo note</div>
+      <h3 id="gapNoteTitle"></h3>
       <p id="gapNoteText"></p>
       <div class="gn-foot"><span class="gn-step" id="gapNoteStep"></span><button type="button" id="gapNoteBtn">Got it</button></div>
     </aside>
@@ -878,8 +898,38 @@
             </dl>
           </section>
         </div>
-        <section class="an-card"><div class="an-k">Summary</div>${summaryHtml}</section>
-        <div class="an-foot">Sentiment and summary by ${escapeHtml(sent?.model ?? "gpt-4o")}, with quotes checked against the transcript. Outcome, follow-up and stage come from fixed rules on the recorded outcome, not the model.${call.callId ? ` · <a href="?call=${encodeURIComponent(call.callId)}">Link to this call</a>` : ""}</div>`;
+        <section class="an-card"><div class="an-k">Call summary</div>${summaryHtml}</section>
+        ${performanceHtml(a.performance, a.record?.transcript)}
+        <div class="an-foot">Sentiment and summary by ${escapeHtml(sent?.model ?? "gpt-4o")}, with quotes checked against the transcript. Outcome, follow-up, stage and agent performance come from fixed rules, not the model.${call.callId ? ` · <a href="?call=${encodeURIComponent(call.callId)}">Link to this call</a>` : ""}</div>`;
+      if (a.performance) showGapNote("evals"); // the moment the section is first on screen
+    }
+
+    const SEVERITY_TONE = { critical: "bad", major: "warn", minor: "" };
+    const CHECK_ICON = `<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="8" fill="#23a7a3"/><path d="M4.6 8.2 7 10.5 11.4 5.7" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+    // Code-only checks on Shreya's own handling of the call. Every issue is
+    // queued server-side as an eval candidate, which is what the row says.
+    function performanceHtml(perf, turns) {
+      if (!perf) return "";
+      const n = perf.findings.length;
+      const head = `<div class="an-card-head"><div class="an-k">Agent performance</div><span class="an-count">${perf.checks_run} checks · ${n ? `${n} issue${n === 1 ? "" : "s"}` : "all passed"}</span></div>`;
+      if (!n) return `<section class="an-card">${head}<div class="an-pass">${CHECK_ICON}No issues on this call.</div></section>`;
+      const rows = perf.findings.map((f) => {
+        let quote = "";
+        if (f.quote != null) {
+          const isBot = turns?.[f.turn]?.role === "bot";
+          const text = escapeHtml(f.quote.length > 140 ? f.quote.slice(0, 140) + "…" : f.quote).replace(/\b([a-z]+_[a-z_]+)\b/g, "<code>$1</code>");
+          quote = `<button type="button" class="an-quote ${isBot ? "bot" : ""}" data-quote="${escapeHtml(f.quote)}" data-role="${isBot ? "bot" : "user"}">“${text}”<span class="turn">Turn ${f.turn + 1} · show in transcript</span></button>`;
+        }
+        return `<div class="an-issue">
+            <span class="chip ${SEVERITY_TONE[f.severity] ?? ""}">${escapeHtml(f.severity[0].toUpperCase() + f.severity.slice(1))}</span>
+            <div class="an-issue-title">${escapeHtml(f.title)}</div>
+            <div class="an-issue-detail">${escapeHtml(f.detail)}</div>
+            ${quote}
+            <div class="an-eval">Queued as eval case · <code>${escapeHtml(f.eval)}</code></div>
+          </div>`;
+      }).join("");
+      return `<section class="an-card">${head}<div class="an-issues">${rows}</div></section>`;
     }
 
     function normQuote(t) { return t.toLowerCase().replace(/[^\w\s']/g, " ").replace(/\s+/g, " ").trim(); }
@@ -888,7 +938,8 @@
       const btn = e.target.closest(".an-quote");
       if (!btn) return;
       const q = normQuote(btn.dataset.quote);
-      const idx = currentCall.transcript.findIndex((m) => m.role === "user" && normQuote(m.text || "").includes(q));
+      const role = btn.dataset.role ?? "user";
+      const idx = currentCall.transcript.findIndex((m) => m.role === role && normQuote(m.text || "").includes(q));
       setTab("transcript");
       if (idx < 0) return;
       const node = feedEl.querySelector(`.msg[data-idx="${idx}"]`);
@@ -969,11 +1020,21 @@
     let ringback = null;
     function stopRingback() { ringback?.stop(); ringback = null; }
 
-    // --- gap notes: walkthrough pop-ups that call out, at the moment it
-    // happens, a place where the demo knowingly falls short of production.
+    // --- walkthrough notes: pop-ups shown at the moment they apply, either
+    // naming a place where the demo knowingly falls short of production
+    // ("Demo note") or explaining what a feature on screen does ("How it works").
     // Each is shown once per page load; more than one queues behind the first.
     const GAP_NOTES = {
-      accent: "We would have liked Shreya to speak with an Indian accent. To keep this demo simple I've used OpenAI's voice, which doesn't support an Indian accent.",
+      accent: {
+        kind: "Demo note",
+        title: "Shreya's accent",
+        text: "We would have liked Shreya to speak with an Indian accent. To keep this demo simple I've used OpenAI's voice, which doesn't support an Indian accent.",
+      },
+      evals: {
+        kind: "How it works",
+        title: "Agent performance feeds the evals",
+        text: "Code checks review Shreya's own side of every call. Each issue they find is queued as an eval case, so the next prompt version is tested against that exact failure before it ships.",
+      },
     };
     const gapNoteEl = el("gapNote");
     const gapNoteQueue = [];
@@ -987,8 +1048,11 @@
     function nextGapNote() {
       const key = gapNoteQueue.shift();
       if (!key) { gapNoteEl.hidden = true; return; }
-      el("gapNoteText").textContent = GAP_NOTES[key];
-      el("gapNoteStep").textContent = `Known gap ${gapNotesSeen.size - gapNoteQueue.length} of ${Object.keys(GAP_NOTES).length}`;
+      const note = GAP_NOTES[key];
+      el("gapNoteKind").textContent = note.kind;
+      el("gapNoteTitle").textContent = note.title;
+      el("gapNoteText").textContent = note.text;
+      el("gapNoteStep").textContent = `Note ${gapNotesSeen.size - gapNoteQueue.length} of ${Object.keys(GAP_NOTES).length}`;
       gapNoteEl.hidden = false;
     }
     el("gapNoteBtn").addEventListener("click", nextGapNote);

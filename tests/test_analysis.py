@@ -6,7 +6,7 @@ Run with: uv run python -m unittest discover tests
 import unittest
 from datetime import date
 
-from bot.analysis import derive_workflow, ground_evidence, resolve_follow_up_date, transcript_from_context
+from bot.analysis import derive_workflow, ground_evidence, resolve_follow_up_date, review_agent, transcript_from_context
 
 TODAY = date(2026, 10, 28)  # a Wednesday
 
@@ -146,9 +146,46 @@ class GroundingTest(unittest.TestCase):
         out = ground_evidence([{"turn": 0, "quote": "I already told you, I'll pay"}], self.transcript)
         self.assertEqual(out, [{"turn": 1, "quote": "I already told you, I'll pay"}])
 
+    def test_drops_system_text_quote(self):
+        transcript = [{"role": "customer", "text": "minimum_due"}]
+        self.assertEqual(ground_evidence([{"turn": 0, "quote": "minimum_due"}], transcript), [])
+
     def test_drops_invented_quote_and_bot_quote(self):
         self.assertEqual(ground_evidence([{"turn": 1, "quote": "this is harassment"}], self.transcript), [])
         self.assertEqual(ground_evidence([{"turn": 2, "quote": "Thank you"}], self.transcript), [])
+
+
+class ReviewAgentTest(unittest.TestCase):
+    def keys(self, record):
+        return [f["key"] for f in review_agent(record)["findings"]]
+
+    def test_flags_system_text_with_turn(self):
+        record = {"outcome": {"type": "promise_to_pay"}, "transcript": [
+            {"role": "bot", "text": "By when are you planning to pay?"},
+            {"role": "customer", "text": "minimum_due"},
+        ]}
+        findings = review_agent(record)["findings"]
+        self.assertEqual([(f["key"], f["turn"], f["eval"]) for f in findings], [("system_text", 1, "transcript_clean")])
+
+    def test_clean_call_has_no_findings(self):
+        record = {"outcome": {"type": "promise_to_pay"}, "transcript": [
+            {"role": "bot", "text": "By when are you planning to pay?"},
+            {"role": "customer", "text": "Friday, the full 4,820."},
+        ]}
+        self.assertEqual(self.keys(record), [])
+
+    def test_guardrail_long_turn_loop_and_no_outcome(self):
+        ask = "So by when are you planning to pay?"
+        record = {
+            "outcome": {"type": "no_outcome"},
+            "guardrail_triggers": [{"turn": 2, "rule": "no_cibil", "action": "substituted"}],
+            "transcript": [
+                {"role": "bot", "text": ask}, {"role": "customer", "text": "Not sure."},
+                {"role": "bot", "text": ask}, {"role": "customer", "text": "I said not sure."},
+                {"role": "bot", "text": " ".join(["word"] * 60) + ". " + ask},
+            ],
+        }
+        self.assertEqual(self.keys(record), ["guardrail", "long_turn", "repeated_question", "no_outcome"])
 
 
 class TranscriptFromContextTest(unittest.TestCase):

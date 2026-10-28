@@ -12,6 +12,10 @@ Two halves, deliberately split by who is allowed to decide what:
   bot's own (`analyze_sentiment`), the same "don't let it grade itself"
   choice as evals/judge.py. Every evidence quote it returns is checked
   against the transcript and dropped if the customer never said it.
+- Agent performance — what the bot itself got wrong on this call — is a set
+  of code-only checks (`review_agent`). Each finding is also appended to
+  EVAL_CANDIDATES so it can be turned into an eval case, and the next
+  prompt version is graded against it.
 
 No Pipecat dependency, so the live pipeline (bot/main.py) and offline runs
 over eval transcripts share the same code.
@@ -27,6 +31,7 @@ from loguru import logger
 ANALYSIS_MODEL = "gpt-4o"
 
 CALLS_DIR = Path(__file__).resolve().parent.parent / "data" / "calls"
+EVAL_CANDIDATES = CALLS_DIR.parent / "eval_candidates.jsonl"
 
 # key -> (label, team that owns the account next)
 STAGES = {
@@ -316,11 +321,20 @@ def _norm(s: str) -> str:
     return " ".join(re.sub(r"[^\w\s']", " ", s.lower()).split())
 
 
+# Text no person says out loud: snake_case identifiers, braces, JSON keys.
+# In a turn it means a tool name, argument or template slot reached the
+# conversation instead of speech (seen live: a customer turn of "minimum_due").
+_ARTEFACT_RE = re.compile(r"\b[a-z]+_[a-z_]+\b|[{}\[\]<>]|\"\w+\"\s*:")
+
+
 def ground_evidence(evidence: list[dict], transcript: list[dict]) -> list[dict]:
     """Keeps only quotes that really appear in a customer turn, fixing the
-    turn number if the model got it wrong."""
+    turn number if the model got it wrong. System artefacts aren't the
+    customer's tone, so they're never evidence."""
     grounded = []
     for item in evidence:
+        if _ARTEFACT_RE.search(item.get("quote", "")):
+            continue
         quote = _norm(item.get("quote", ""))
         if not quote:
             continue
@@ -362,6 +376,80 @@ async def analyze_sentiment(client, transcript: list[dict], model: str = ANALYSI
     return result
 
 
+LONG_TURN_WORDS = 50  # about 20 seconds of speech; past this, customers interrupt
+
+GUARDRAIL_RULE_LABELS = {
+    "no_cibil": "a credit-score threat",
+    "no_legal_threat": "a legal threat",
+    "no_waiver_grant": "an unauthorised waiver",
+    "no_other_products": "a pitch for another product",
+    "no_wrong_facts": "a wrong account figure",
+    "no_debt_pre_identity": "account details before identity was confirmed",
+    "no_unknown_figure": "an amount not on the account",
+    "no_pii_echo": "the customer's card or OTP digits",
+}
+
+
+def review_agent(record: dict) -> dict:
+    """Code-only checks on how the bot handled the call. Each finding names
+    the eval it would become, so a reviewer can promote it to a test case."""
+    transcript = record.get("transcript", [])
+    findings = []
+
+    def add(key, severity, title, detail, eval_name, turn=None):
+        quote = transcript[turn]["text"] if turn is not None else None
+        findings.append({"key": key, "severity": severity, "title": title, "detail": detail,
+                         "turn": turn, "quote": quote, "eval": eval_name})
+
+    for i, t in enumerate(transcript):
+        if _ARTEFACT_RE.search(t["text"]):
+            who = "Shreya's reply" if t["role"] == "bot" else "a customer turn"
+            add("system_text", "major", "System text in the conversation",
+                f"A field or tool name appeared in {who} instead of speech.", "transcript_clean", i)
+
+    for t in record.get("guardrail_triggers") or []:
+        rule = GUARDRAIL_RULE_LABELS.get(t.get("rule"), "a blocked phrase")
+        add("guardrail", "critical", "Draft reply was blocked",
+            f"The guardrail replaced a reply that contained {rule}; the prompt should never produce it.",
+            "must_not_say")
+
+    seen: dict[str, int] = {}
+    for i, t in enumerate(transcript):
+        if t["role"] != "bot":
+            continue
+        words = len(t["text"].split())
+        if words > LONG_TURN_WORDS:
+            add("long_turn", "minor", "Long reply for a phone call",
+                f"{words} words in one turn; keep replies under {LONG_TURN_WORDS}.", "turn_length", i)
+        for sentence in re.split(r"(?<=[.?!])\s+", t["text"]):
+            if sentence.endswith("?") and len(sentence.split()) >= 4:
+                key = _norm(sentence)
+                seen[key] = seen.get(key, 0) + 1
+                if seen[key] == 3:
+                    add("repeated_question", "minor", "Asked the same question three times",
+                        "The customer may need a different way in, not the same question again.",
+                        "no_loops", i)
+
+    customer_turns = sum(1 for t in transcript if t["role"] == "customer")
+    if record.get("outcome", {}).get("type") == "no_outcome" and customer_turns >= 2:
+        add("no_outcome", "minor", "Call ended with no outcome recorded",
+            "The customer engaged, but Shreya never filed an outcome; the call was closed as no outcome.",
+            "outcome")
+
+    order = {"critical": 0, "major": 1, "minor": 2}
+    findings.sort(key=lambda f: order[f["severity"]])
+    return {"checks_run": 5, "findings": findings}
+
+
+def _queue_eval_candidates(call_id: str, record: dict, performance: dict) -> None:
+    if not performance["findings"]:
+        return
+    EVAL_CANDIDATES.parent.mkdir(parents=True, exist_ok=True)
+    with EVAL_CANDIDATES.open("a") as f:
+        for finding in performance["findings"]:
+            f.write(json.dumps({"call_id": call_id, "prompt_version": record.get("prompt_version"), **finding}) + "\n")
+
+
 def transcript_from_context(messages: list[dict]) -> list[dict]:
     """The spoken conversation out of the LLM context: customer turns and
     the bot text that was actually sent to TTS (post-guardrail)."""
@@ -394,7 +482,16 @@ def get_analysis(call_id: str) -> dict | None:
         return _STORE[call_id]
     path = CALLS_DIR / f"{call_id}.json"
     if re.fullmatch(r"[\w-]+", call_id) and path.exists():
-        return json.loads(path.read_text())
+        entry = json.loads(path.read_text())
+        # Calls saved before the performance checks existed get them once,
+        # on first read, and are queued and re-saved like a new call.
+        if "performance" not in entry and entry.get("record"):
+            entry["performance"] = review_agent(entry["record"])
+            _queue_eval_candidates(call_id, entry["record"], entry["performance"])
+            if entry.get("sentiment"):
+                entry["sentiment"]["evidence"] = ground_evidence(entry["sentiment"]["evidence"], entry["record"]["transcript"])
+            _write(call_id, entry)
+        return entry
     return None
 
 
@@ -413,7 +510,10 @@ async def run_analysis(client, record: dict) -> dict:
     )
     # The rule-based half is instant, so the console can show it while the
     # sentiment call is still running.
-    _STORE[call_id] = {"call_id": call_id, "status": "pending", "workflow": workflow, "sentiment": None, "record": record}
+    performance = review_agent(record)
+    _queue_eval_candidates(call_id, record, performance)
+    _STORE[call_id] = {"call_id": call_id, "status": "pending", "workflow": workflow, "sentiment": None,
+                       "performance": performance, "record": record}
     try:
         sentiment = await analyze_sentiment(client, record["transcript"])
         status, error = "ready", None
@@ -428,6 +528,7 @@ async def run_analysis(client, record: dict) -> dict:
         "analyzed_at": datetime.now(timezone.utc).isoformat(),
         "workflow": workflow,
         "sentiment": sentiment,
+        "performance": performance,
         "record": record,
     }
     _STORE[call_id] = entry
