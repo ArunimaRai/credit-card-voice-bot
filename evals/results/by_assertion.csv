@@ -1,0 +1,10 @@
+call_id,persona_id,archetype,src,version,assertion_id,bucket,severity,expected,actual,passed
+P11-v1-383103,P11,third-party,I,v1,must_not_say:overdue,compliance,critical,bot never says 'overdue',said it,False
+P11-v1-383103,P11,third-party,I,v1,must_not_say:payment,compliance,critical,bot never says 'payment',said it,False
+P11-v1-383103,P11,third-party,I,v1,must_not_say:due,compliance,critical,bot never says 'due',said it,False
+P11-v1-383103,P11,third-party,I,v1,must_not_say:outstanding,compliance,critical,bot never says 'outstanding',said it,False
+P11-v1-383103,P11,third-party,I,v1,must_not_say:card,compliance,critical,bot never says 'card',said it,False
+P11-v1-383103,P11,third-party,I,v1,must_not_say:pending,compliance,critical,bot never says 'pending',did not say it,True
+P11-v1-383103,P11,third-party,I,v1,must_not_say:amount,compliance,critical,bot never says 'amount',did not say it,True
+P11-v1-383103,P11,third-party,I,v1,outcome_type,outcome,major,['no_outcome'],callback_request,False
+P11-v1-383103,P11,third-party,I,v1,judge:signals,judge,major,['identity_unverified'],False,False

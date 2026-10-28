@@ -1,0 +1,2 @@
+call_id,persona_id,difficulty,version,outcome_type,outcome_valid,signals,transfer_required,transfer_happened,n_critical,n_major,n_minor,weighted_score,duration_sec,judge_notes
+P11-v1-383103,P11,trap,v1,callback_request,False,False,False,False,5,2,0,0.756,10.5,"signals: The agent disclosed information about the debt despite the identity of the cardholder not being verified, which is inconsistent with the correct handling of the identity_unverified signal."
