@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mumbai Bank — Collections Voicebot (dev client)</title>
+  <style>
+    body { font-family: -apple-system, system-ui, sans-serif; max-width: 640px; margin: 48px auto; color: #1a1a1a; }
+    button { font-size: 16px; padding: 10px 20px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status { margin: 16px 0; font-weight: 600; }
+    #log { white-space: pre-wrap; background: #f4f4f4; border-radius: 8px; padding: 12px; height: 320px; overflow-y: auto; font-size: 13px; line-height: 1.5; }
+    .bot { color: #0b5fff; }
+    .user { color: #1a7a1a; }
+  </style>
+</head>
+<body>
+  <h2>Collections voicebot — dev test client</h2>
+  <p id="status">disconnected</p>
+  <button id="connectBtn">Start call</button>
+  <button id="disconnectBtn" disabled>Hang up</button>
+  <div id="log"></div>
+
+  <script type="module">
+    import { PipecatClient } from "https://cdn.jsdelivr.net/npm/@pipecat-ai/client-js@1.15.0/+esm";
+    import { SmallWebRTCTransport } from "https://cdn.jsdelivr.net/npm/@pipecat-ai/small-webrtc-transport@1.11.1/+esm";
+
+    const statusEl = document.getElementById("status");
+    const logEl = document.getElementById("log");
+    const connectBtn = document.getElementById("connectBtn");
+    const disconnectBtn = document.getElementById("disconnectBtn");
+
+    function log(cls, text) {
+      const line = document.createElement("div");
+      line.className = cls;
+      line.textContent = text;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    let lastBotLine = "";
+    let audioEl = document.querySelector("audio#botAudio");
+    if (!audioEl) {
+      audioEl = document.createElement("audio");
+      audioEl.id = "botAudio";
+      audioEl.autoplay = true;
+      document.body.appendChild(audioEl);
+    }
+
+    const client = new PipecatClient({
+      transport: new SmallWebRTCTransport(),
+      enableMic: true,
+      enableCam: false,
+      callbacks: {
+        onConnected: () => {
+          statusEl.textContent = "connected";
+          connectBtn.disabled = true;
+          disconnectBtn.disabled = false;
+        },
+        onDisconnected: () => {
+          statusEl.textContent = "disconnected";
+          connectBtn.disabled = false;
+          disconnectBtn.disabled = true;
+        },
+        onBotStartedSpeaking: () => log("bot", "[bot speaking...]"),
+        onTrackStarted: (track, participant) => {
+          if (!participant?.local && track.kind === "audio") {
+            audioEl.srcObject = new MediaStream([track]);
+          }
+        },
+        onUserInput: (data) => {
+          if (data.final) log("user", "You: " + data.text);
+        },
+        onBotOutput: (data) => {
+          if (data.text && data.text !== lastBotLine) {
+            lastBotLine = data.text;
+            log("bot", "Bot: " + data.text);
+          }
+        },
+        onError: (err) => log("bot", "[error] " + JSON.stringify(err)),
+      },
+    });
+
+    connectBtn.addEventListener("click", async () => {
+      statusEl.textContent = "connecting...";
+      try {
+        await client.connect({ webrtcRequestParams: { endpoint: "/api/offer" } });
+      } catch (e) {
+        statusEl.textContent = "connection failed";
+        log("bot", "[connect failed] " + e);
+      }
+    });
+
+    disconnectBtn.addEventListener("click", async () => {
+      await client.disconnect();
+    });
+  </script>
+</body>
+</html>

@@ -77,7 +77,7 @@ Local Python is 3.14 and Pipecat will fight it. Pin 3.12.
 cd /Users/user/Desktop/greylabs
 curl -LsSf https://astral.sh/uv/install.sh | sh
 uv venv --python 3.12
-uv pip install "pipecat-ai[openai,silero,webrtc]" pydantic python-dotenv httpx pyyaml
+uv pip install "pipecat-ai[openai,silero,webrtc,runner]" pydantic python-dotenv httpx pyyaml
 cp .env.example .env   # then add OPENAI_API_KEY and WEBHOOK_URL
 ```
 
@@ -89,6 +89,8 @@ PROMPT_VERSION=v1
 ```
 
 > ⚠️ **Pipecat's API has churned significantly.** Read the current Pipecat docs for transport and service class names before writing `main.py`. Do not rely on model training data for imports — you will get confidently-wrong class names. Verify against the installed version: `uv pip show pipecat-ai`.
+
+**Confirmed against pipecat-ai 1.14.0 (2026-10-28):** the installed API matches `pipecat init ref-bot -t smallwebrtc -m cascade --stt openai_stt --llm openai_llm --tts openai_tts` scaffolded into a scratch dir and diffed — `bot/main.py` follows that generated shape (`PipelineWorker` / `WorkerRunner` / `create_transport` / `LLMContext` + `LLMContextAggregatorPair`, not the older `PipelineTask`/`PipelineRunner` names). The `runner` extra pulls in `pipecat-ai-prebuilt` (its dev UI) as a transitive dependency — unused here; `bot/main.py` registers its own `GET /` (serving `client/index.html`) on the runner's FastAPI `app` before calling `pipecat.runner.run.main()`, which wins the route since it's registered first and the prebuilt UI's own `/` redirect never gets added as a result. Server: `uv run bot/main.py` (or `python -m bot.main` from repo root), binds `localhost:7860`, WebRTC signaling at `POST /api/offer`.
 
 ---
 
@@ -108,6 +110,17 @@ Starting candidates, to confirm on Day 1:
 | LLM | current `gpt-4o` / `gpt-4.1` class | Needs reliable tool-calling and strict instruction adherence. Instruction adherence matters more than reasoning depth here — the hard part is *not* saying things |
 | TTS | `gpt-4o-mini-tts` | Pick the voice by listening. See the caveat below |
 | Judge | A **different** model from the bot's LLM | Same-model judging inflates scores. Note the residual same-vendor bias honestly in the writeup |
+
+### Confirmed, Day 1 (2026-10-28)
+
+Ran the enumeration above against the project's real key. The account can reach a much wider, newer model surface than training data would suggest (`gpt-5.x`, `gpt-6-*` lines exist now) — which is exactly why this step isn't optional. Pinned for the bot:
+
+- **LLM**: `gpt-4.1` — it's `OpenAILLMService`'s own built-in default in the installed pipecat-ai (1.14.0), and matches the spec's reasoning (instruction adherence over reasoning depth) without reaching for a newer, less-vetted line for a task that doesn't need it.
+- **STT**: `gpt-4o-transcribe` — explicitly set; pipecat's `OpenAISTTService` otherwise defaults to `gpt-transcribe`, which wasn't on the candidate list above and is unverified for the Hinglish case.
+- **TTS**: `gpt-4o-mini-tts` — also `OpenAITTSService`'s own default already, nothing to override.
+- **Judge**: not picked yet (Day 2).
+
+Not yet done: listening to pick the actual TTS voice (currently `alloy`, a placeholder), and the Hinglish STT accuracy check. Both need an actual call, which needs Day 1's pipeline running first.
 
 ### Known weakness to own, not hide
 **OpenAI's TTS voices are American-accented. There is no Indian-English voice.** For a Mumbai Bank collections call that is a genuine product mismatch — an American voice calling about an overdue Indian credit card reduces trust and raises scam suspicion.
@@ -615,6 +628,13 @@ A fifth failure bucket beyond their four — **data-handling** (archetypes #8, #
 ## 11. Day plan with done-criteria
 
 **Day 1 — pipeline.** Done when: you speak into the browser, it answers in voice over multiple turns, and a structurally valid outcome lands in webhook.site. `PROMPT_VERSION=v1` runs the unmodified prompt. Nothing else matters today — resist building guardrails.
+
+**Day 1 — confirmed working (2026-10-28), plus two live findings:**
+
+The pipeline runs end to end against a real call: WebRTC connects, STT/LLM/TTS all fire, multi-turn audio flows both ways. Two things surfaced on the first real call, worth carrying forward rather than quietly patching (v1.py is never edited):
+
+- **STT language misdetection on short utterances.** The user said "late fee"; `gpt-4o-transcribe` transcribed it as `لیڈوی.` (Urdu script, not a real word). This happened with `language=Language.EN` already being passed as a hint — pipecat's `OpenAISTTService` defaults to `Language.EN` whether or not `settings=` touches it, confirmed by reading `apply_update`'s delta-merge logic, so this was not a missing-config bug. It's a real reliability limit of the model on short (~1.5s), ambiguous audio. Because v1's prompt has zero language constraint (unlike v2's "you speak only English... always respond in English"), the LLM just ran with the misheard turn and continued the *entire rest of the call in Urdu* — still delivering the unprompted credit-score/legal-action threat, now translated. That part is the baseline correctly doing what the exercise expects it to do, and is left alone (v1.py is never edited, and no language-response guardrail was added for any version — that would contaminate the v1/v2/v3 comparison). What *was* fixed, since it's infra, not prompt: `bot/main.py`'s STT settings now carry a domain-biasing `prompt` (late fee, minimum due, OTP, etc.) to reduce misrecognition on short domain-specific phrases. This is a mitigation, not a guarantee — re-test specifically during Day 2's persona P14 (language-barrier), and don't assume it's closed until it's been seen to survive a few more short-utterance calls.
+- **Zero-outcome hangup — fixed 2026-10-28, pulled forward from Day 3.** The user hung up mid-call (while the bot was off in Urdu). `record_outcome` was never invoked — confirmed via the server log and the webhook.site inbox directly (`GET https://webhook.site/token/<id>/requests` — empty). This was D1's stated worst case happening for real: not a fabricated PTP, but *nothing at all* landing anywhere. Fixed in `bot/main.py`: a `call_state["outcome_recorded"]` flag is set inside the `record_outcome` tool handler; `on_client_disconnected` checks it and, if still false, synthesizes and POSTs a `no_outcome` record (`reason: "call ended without a recorded outcome"`) before tearing the call down. Applies uniformly across v1/v2/v3 since it's a transport-level record-integrity net, not a conversational guardrail — it never changes what the LLM is allowed to say. The webhook payload also now carries `started_at` / `duration_sec` on every record (forced or real), matching §5's documented shape. Still open for Day 3: this only guarantees *a* record exists, not a *correct* one — persona-level signal detection (`identity_unverified`, `hardship_disclosed`, etc.) is still unbuilt.
 
 **Day 2 — evals.** Done when: `python evals/harness.py --version v1` produces both CSVs, you have hand-scored 20% and know the judge agreement number, and you can state v1's baseline failure rate per bucket.
 
