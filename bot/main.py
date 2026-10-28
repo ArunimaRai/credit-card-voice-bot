@@ -141,7 +141,19 @@ CUSTOMER_ID = os.getenv("CUSTOMER_ID", "MB-0007")
 
 CUSTOMERS = json.loads((Path(__file__).parent / "fixtures" / "customers.json").read_text())
 
-RECORDINGS_DIR = Path(__file__).resolve().parent.parent / "recordings" / "audio"
+TTS_INSTRUCTIONS = (
+    "Voice: a young Indian woman named Shreya. "
+    "Accent: a natural Indian English accent, like a young professional from Mumbai working "
+    "at a bank call centre. Not exaggerated, not American, not British. "
+    "Tone: warm, polite, relaxed and friendly, like a real person on a phone call, not a "
+    "recorded announcement. "
+    "Pacing: conversational, with small natural pauses around fillers like 'okay', 'actually' "
+    "and 'just'. Slightly slower when saying amounts and dates. "
+    "Pronunciation: say rupee amounts the Indian way, e.g. 'eighteen thousand four hundred "
+    "twenty rupees'."
+)
+
+RECORDINGS_DIR =Path(__file__).resolve().parent.parent / "recordings" / "audio"
 
 # Post-call analyses run after the pipeline is torn down, so they're held
 # here rather than on the call's own tasks (and kept referenced until done).
@@ -171,7 +183,13 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
     )
     tts = OpenAITTSService(
         api_key=os.getenv("OPENAI_API_KEY"),
-        settings=OpenAITTSService.Settings(voice=os.getenv("OPENAI_VOICE_ID", "alloy")),
+        settings=OpenAITTSService.Settings(
+            model="gpt-4o-mini-tts",
+            voice=os.getenv("OPENAI_VOICE_ID", "coral"),
+            # gpt-4o-mini-tts takes acting instructions; the voice IDs alone
+            # are all American-sounding.
+            instructions=TTS_INSTRUCTIONS,
+        ),
     )
     system_prompt = build_system_prompt(customer)
     llm = OpenAILLMService(
