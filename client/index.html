@@ -34,11 +34,10 @@
       --live-100: #c8ecea;
       --ok-700: #157a72;
 
-      /* speaker ink (bubble fills are --bubble-bot / --bubble-user below) */
+      /* speaker ink: Shreya = indigo, customer = rose (the orb's pink). Fills are --bubble-* below. */
       --lav-bg: #ebeefc;
       --lav-ink: #4150a8;
-      --peach-line: #f3d6c1;
-      --peach-ink: #a3582b;
+      --rose-ink: #a83f7a;
 
       /* status */
       --coral: #c94b41;
@@ -76,17 +75,15 @@
       --cta-shadow: 0 14px 28px -14px rgba(21, 22, 26, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
       --cta-shadow-hover: 0 18px 32px -14px rgba(21, 22, 26, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 
-      /* speaker bubbles: Shreya = indigo/cyan wash, customer = peach/pink wash */
+      /* speaker bubbles, both from the orb, no border: Shreya = indigo/cyan, customer = pink/indigo */
       --bubble-bot:
-        radial-gradient(120% 140% at 0% 0%, rgba(124, 108, 255, 0.10), transparent 60%),
-        radial-gradient(100% 120% at 100% 100%, rgba(60, 224, 255, 0.07), transparent 60%),
-        #f6f6ff;
-      --bubble-bot-line: rgba(124, 108, 255, 0.18);
+        radial-gradient(120% 140% at 0% 0%, rgba(124, 108, 255, 0.12), transparent 60%),
+        radial-gradient(100% 120% at 100% 100%, rgba(60, 224, 255, 0.10), transparent 60%),
+        #f4f4fe;
       --bubble-user:
-        radial-gradient(120% 140% at 100% 0%, rgba(255, 94, 168, 0.08), transparent 60%),
-        radial-gradient(100% 120% at 0% 100%, rgba(255, 170, 130, 0.10), transparent 60%),
-        #fff7f2;
-      --bubble-user-line: rgba(232, 150, 110, 0.28);
+        radial-gradient(120% 140% at 100% 0%, rgba(255, 94, 168, 0.10), transparent 60%),
+        radial-gradient(100% 120% at 0% 100%, rgba(124, 108, 255, 0.07), transparent 60%),
+        #fbf4fa;
       color-scheme: light;
     }
     * { box-sizing: border-box; }
@@ -244,8 +241,8 @@
     @keyframes breathe { 50% { translate: 0 -6px; } }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* halo tint per call state: pink-peach while the customer talks, like their bubbles */
-    .console[data-state="listening"] .orb-halo { background: radial-gradient(circle, rgba(255, 94, 168, 0.2) 0%, rgba(255, 170, 130, 0.14) 40%, transparent 68%); }
+    /* halo tint per call state: pink while the customer talks, like their bubbles */
+    .console[data-state="listening"] .orb-halo { background: radial-gradient(circle, rgba(255, 94, 168, 0.2) 0%, rgba(124, 108, 255, 0.12) 40%, transparent 68%); }
     .console[data-state="connecting"] .orb-halo { animation: breatheHalo 1.4s ease-in-out infinite; }
     @keyframes breatheHalo { 0%, 100% { opacity: 0.4; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.06); } }
     .console[data-state="ended"] .orb canvas { filter: grayscale(0.8); }
@@ -296,7 +293,7 @@
     .cap-status .bars i:nth-child(2) { animation-delay: 0.15s; }
     .cap-status .bars i:nth-child(3) { animation-delay: 0.3s; }
     @keyframes bar { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
-    .console[data-state="listening"] .cap-status { color: var(--peach-ink); }
+    .console[data-state="listening"] .cap-status { color: var(--rose-ink); }
     .console[data-state="bot-speaking"] .cap-status { color: var(--accent-700); }
     .console[data-state="listening"] .cap-status .bars,
     .console[data-state="bot-speaking"] .cap-status .bars { display: inline-flex; }
@@ -341,11 +338,11 @@
     .msg:last-child { animation: msgIn 0.35s var(--ease-smooth); }
     .bubble {
       padding: 15px 22px; font-size: 16.5px; line-height: 1.5; letter-spacing: -0.01em;
-      border: 1px solid; border-radius: 24px;
+      border-radius: 24px;
       overflow-wrap: anywhere;
     }
-    .msg.bot .bubble { background: var(--bubble-bot); border-color: var(--bubble-bot-line); border-bottom-left-radius: 8px; }
-    .msg.user .bubble { background: var(--bubble-user); border-color: var(--bubble-user-line); border-bottom-right-radius: 8px; }
+    .msg.bot .bubble { background: var(--bubble-bot); border-bottom-left-radius: 8px; }
+    .msg.user .bubble { background: var(--bubble-user); border-bottom-right-radius: 8px; }
     .meta { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--ink-3); margin: 0 8px 6px; }
     .meta b { font-weight: 600; color: var(--ink-2); }
     .meta .t { font-variant-numeric: tabular-nums; }
@@ -364,10 +361,10 @@
     /* ---------- empty state ---------- */
     .empty-state { height: 100%; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
     .empty-art { position: relative; width: 168px; height: 104px; margin-bottom: 22px; }
-    .empty-art span { position: absolute; height: 30px; border-radius: 15px; border: 1px solid; animation: riseIn 0.6s var(--ease-smooth) both; }
-    .empty-art .e1 { left: 0; top: 0; width: 120px; background: var(--bubble-bot); border-color: var(--bubble-bot-line); border-bottom-left-radius: 6px; }
-    .empty-art .e2 { right: 0; top: 36px; width: 90px; background: var(--bubble-user); border-color: var(--bubble-user-line); border-bottom-right-radius: 6px; animation-delay: 0.12s; }
-    .empty-art .e3 { left: 0; top: 72px; width: 72px; background: var(--bubble-bot); border-color: var(--bubble-bot-line); border-bottom-left-radius: 6px; animation-delay: 0.24s; }
+    .empty-art span { position: absolute; height: 30px; border-radius: 15px; animation: riseIn 0.6s var(--ease-smooth) both; }
+    .empty-art .e1 { left: 0; top: 0; width: 120px; background: var(--bubble-bot); border-bottom-left-radius: 6px; }
+    .empty-art .e2 { right: 0; top: 36px; width: 90px; background: var(--bubble-user); border-bottom-right-radius: 6px; animation-delay: 0.12s; }
+    .empty-art .e3 { left: 0; top: 72px; width: 72px; background: var(--bubble-bot); border-bottom-left-radius: 6px; animation-delay: 0.24s; }
     .empty-title { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; }
     .empty-sub { font-size: 14px; color: var(--ink-3); margin-top: 6px; max-width: 300px; line-height: 1.5; }
 
@@ -424,11 +421,11 @@
     .an-quotes { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .an-quote {
       text-align: left; cursor: pointer;
-      border: 1px solid var(--bubble-user-line); color: var(--ink); background: var(--bubble-user);
+      border: 1px solid transparent; color: var(--ink); background: var(--bubble-user);
       padding: 9px 13px; border-radius: 14px 14px 4px 14px; font-size: 13.5px; line-height: 1.45;
       transition: transform 0.15s ease, border-color 0.15s ease;
     }
-    .an-quote:hover { transform: translateX(-2px); border-color: var(--peach-line); }
+    .an-quote:hover { transform: translateX(-2px); border-color: rgba(255, 94, 168, 0.22); }
     .an-quote .turn { display: block; font-size: 11px; color: var(--ink-3); margin-top: 3px; }
 
     .an-dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 12px 0 0; font-size: 13.5px; }
@@ -487,22 +484,32 @@
     <div class="header-inner">
       <a class="brand" href="./" aria-label="Mumbai Bank home">
         <svg class="brand-mark" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- the dark CTA pill's squircle holding a small orb: the two signature elements of the console -->
           <defs>
-            <linearGradient id="bankGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#7c6cff" />
-              <stop offset="1" stop-color="#250785" />
+            <linearGradient id="markBg" x1="24" y1="0" x2="24" y2="48" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#2c2c35" />
+              <stop offset="1" stop-color="#15161a" />
             </linearGradient>
+            <radialGradient id="markOrb" cx="0.36" cy="0.3" r="0.8">
+              <stop offset="0" stop-color="#ffffff" />
+              <stop offset="0.35" stop-color="#ece9fd" />
+              <stop offset="0.75" stop-color="#b3a8f8" />
+              <stop offset="1" stop-color="#7c6cff" />
+            </radialGradient>
+            <radialGradient id="markCyan" cx="0.74" cy="0.4" r="0.42">
+              <stop offset="0" stop-color="#3ce0ff" stop-opacity="0.85" />
+              <stop offset="1" stop-color="#3ce0ff" stop-opacity="0" />
+            </radialGradient>
+            <radialGradient id="markPink" cx="0.32" cy="0.78" r="0.42">
+              <stop offset="0" stop-color="#ff5ea8" stop-opacity="0.75" />
+              <stop offset="1" stop-color="#ff5ea8" stop-opacity="0" />
+            </radialGradient>
           </defs>
-          <rect width="48" height="48" rx="14" fill="url(#bankGrad)" />
-          <g transform="translate(9,12)" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M0 6 15 0 30 6" />
-            <line x1="1.5" y1="6" x2="28.5" y2="6" />
-            <line x1="5" y1="10" x2="5" y2="18" />
-            <line x1="11.5" y1="10" x2="11.5" y2="18" />
-            <line x1="18.5" y1="10" x2="18.5" y2="18" />
-            <line x1="25" y1="10" x2="25" y2="18" />
-            <line x1="0" y1="22" x2="30" y2="22" />
-          </g>
+          <rect width="48" height="48" rx="14" fill="url(#markBg)" />
+          <rect x="0.5" y="0.5" width="47" height="47" rx="13.5" stroke="#ffffff" stroke-opacity="0.12" />
+          <circle cx="24" cy="24" r="12.5" fill="url(#markOrb)" />
+          <circle cx="24" cy="24" r="12.5" fill="url(#markCyan)" />
+          <circle cx="24" cy="24" r="12.5" fill="url(#markPink)" />
         </svg>
         <span class="brand-name">Mumbai Bank</span>
         <span class="brand-divider"></span>
@@ -892,6 +899,46 @@
 
     function showError(text) { errorBanner.textContent = text; errorBanner.classList.add("show"); }
     function clearError() { errorBanner.classList.remove("show"); errorBanner.textContent = ""; }
+
+    // --- ringback: fills the gap between pressing Start and Shreya's first
+    // word (WebRTC setup + first TTS audio). Indian ringback cadence: 400 Hz
+    // mixed with 450 Hz, 0.4s on, 0.2s off, 0.4s on, 2s off. Kept quiet so the
+    // mic's echo cancellation doesn't mistake it for the customer speaking.
+    class Ringback {
+      constructor() {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new Ctx();
+        this.gain = this.ctx.createGain();
+        this.gain.gain.value = 0;
+        this.gain.connect(this.ctx.destination);
+        for (const f of [400, 450]) {
+          const osc = this.ctx.createOscillator();
+          osc.frequency.value = f;
+          osc.connect(this.gain);
+          osc.start();
+        }
+        this.scheduleRing(this.ctx.currentTime + 0.05);
+        this.timer = setInterval(() => this.scheduleRing(this.ctx.currentTime + 0.05), 3000);
+        // Never ring forever if the bot never speaks.
+        this.cutoff = setTimeout(() => this.stop(), 15000);
+      }
+      scheduleRing(t) {
+        const g = this.gain.gain, vol = 0.06, ramp = 0.01;
+        for (const start of [t, t + 0.6]) {
+          g.setValueAtTime(0, start);
+          g.linearRampToValueAtTime(vol, start + ramp);
+          g.setValueAtTime(vol, start + 0.4 - ramp);
+          g.linearRampToValueAtTime(0, start + 0.4);
+        }
+      }
+      stop() {
+        clearInterval(this.timer);
+        clearTimeout(this.cutoff);
+        this.ctx.close().catch(() => {});
+      }
+    }
+    let ringback = null;
+    function stopRingback() { ringback?.stop(); ringback = null; }
 
     // --- audio-reactive level, drives the orb shader and halo ---
     class AudioLevelMeter {
@@ -1336,6 +1383,7 @@ void main() {
         },
         onDisconnected: () => {
           connected = false;
+          stopRingback();
           stopTimer();
           activeChannel = null;
           localMeter?.close(); localMeter = null;
@@ -1383,6 +1431,7 @@ void main() {
           renderTranscript();
         },
         onBotStartedSpeaking: () => {
+          stopRingback();
           activeChannel = "remote";
           setCallScreenState("bot-speaking");
           if (!pendingBot && currentCall) {
@@ -1424,7 +1473,7 @@ void main() {
             remoteMeter = new AudioLevelMeter(stream);
           }
         },
-        onError: (err) => showError("Connection error: " + JSON.stringify(err)),
+        onError: (err) => { stopRingback(); showError("Connection error: " + JSON.stringify(err)); },
       },
     });
 
@@ -1438,9 +1487,13 @@ void main() {
       pendingBot = null;
       setCallScreenState("connecting");
       renderPanel();
+      // Started inside the click handler, so the browser allows the audio.
+      stopRingback();
+      ringback = new Ringback();
       try {
         await client.connect({ webrtcRequestParams: { endpoint: "/api/offer" } });
       } catch (e) {
+        stopRingback();
         currentCall = null;
         setCallScreenState("idle");
         renderPanel();

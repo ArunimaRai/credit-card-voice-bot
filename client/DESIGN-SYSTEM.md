@@ -32,11 +32,15 @@ Use the token, never a raw value, when one exists.
 | Warning | `--amber`, `--amber-50`, `--amber-line` | `#a1661a` family |
 | Error / frustrated | `--red`, `--red-50`, `--red-line` | `#c8413a` family |
 | Hang up | `--coral`, `--coral-700` | `#c94b41`, `#b03d34` |
-| Speaker ink | `--lav-ink` (Shreya), `--peach-ink` (customer) | `#4150a8`, `#a3582b` |
+| Speaker ink | `--lav-ink` (Shreya), `--rose-ink` (customer) | `#4150a8`, `#a83f7a` |
 
 Orb source colours (shader only): anchor `#250785`, cyan `#3CE0FF`, teal `#36ABAD`,
 pink `#FF5EA8`. In CSS they appear as `rgba(124,108,255,…)`, `rgba(60,224,255,…)` and
 `rgba(255,94,168,…)`.
+
+**No colours outside the orb palette.** Orange, peach and other hues not in the orb are
+not used for decoration. Amber is kept only as the semantic warning colour (chips, the
+dispute dot, the connecting dot).
 
 ## 3. Surface patterns
 
@@ -82,15 +86,24 @@ Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
 
 | Speaker | Fill | Border | Tail corner |
 | --- | --- | --- | --- |
-| Shreya (bot) | `var(--bubble-bot)`, indigo/cyan wash on `#f6f6ff` | `var(--bubble-bot-line)` | bottom-left 8px |
-| Customer | `var(--bubble-user)`, peach/pink wash on `#fff7f2` | `var(--bubble-user-line)` | bottom-right 8px |
+| Shreya (bot) | `var(--bubble-bot)`, indigo/cyan wash on `#f4f4fe` | none | bottom-left 8px |
+| Customer | `var(--bubble-user)`, pink/indigo wash on `#fbf4fa` | none | bottom-right 8px |
 
-- Radius 24px, padding 15px × 22px, 16.5px text. No inner shadow.
+- Radius 24px, padding 15px × 22px, 16.5px text. No border and no inner shadow: the two
+  speakers are told apart by fill and alignment only.
 - The same two fills are used everywhere a speaker is shown: live bubbles (`.msg .bubble`),
   the empty-state illustration (`.empty-art .e1/.e2/.e3`) and the analysis quote cards
   (`.an-quote`, customer fill).
 
-## 6. Typography
+## 6. Brand mark
+
+- The `.brand-mark` SVG in the header is the dark CTA squircle (`#2c2c35 → #15161a`, 14px
+  radius on a 48px box, a 12% white hairline) holding a small orb: a white-to-indigo sphere
+  with a cyan glow at top right and a pink glow at bottom left.
+- It is shown at 34px next to the "Mumbai Bank" wordmark (17px/600). Don't use line icons,
+  bank pillars or other pictograms in the mark; it is built only from the CTA and the orb.
+
+## 7. Typography
 
 - Family: `--font` (system SF stack). Use `--font-mono` only for the phone number.
 - Hero greeting: 26–34px (clamp), 600, `-0.03em`.
@@ -98,12 +111,12 @@ Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
 - Section label `.an-k`: 11px, uppercase, `0.07em` tracking, `--ink-3`.
 - Body: 13.5–14.5px, line-height 1.5–1.6. Timer: 30px/500, tabular numbers.
 
-## 7. Layout
+## 8. Layout
 
 - Console: a 5/7 split grid inside a 28px-radius shell with `--shadow-md`. It stacks below 860px.
 - Panel padding: 32px on desktop, 20px on mobile. Card gap: 14px.
 
-## 8. Motion
+## 9. Motion
 
 - Orb shader clock, the `.orb` breathe and the `.orb-wrap::after` contact shadow run only
   in the `connecting`, `connected-idle`, `listening` and `bot-speaking` states. In `idle`
@@ -113,7 +126,7 @@ Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
 - Entrances: `riseIn` / `msgIn`, 0.35–0.6s.
 - Respect `prefers-reduced-motion`; it is already handled globally.
 
-## 9. Call states (console `data-state`)
+## 10. Call states (console `data-state`)
 
 | State | Orb | Orb-panel button | Header right |
 | --- | --- | --- | --- |
@@ -122,11 +135,11 @@ Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
 | `connected-idle` / `listening` / `bot-speaking` | moving, audio-reactive | Hang Up (coral) | status pill "On call · mm:ss" (teal) |
 | `ended` | still, grey | hidden | **+ New call** (dark pill). Clicking it goes back to `idle`. |
 
-## 10. Checklist for any UI change
+## 11. Checklist for any UI change
 
 - [ ] Uses existing tokens. Any new colour is added to `:root` and to this file.
 - [ ] Primary or selected controls use the dark CTA pill, and nothing else does.
 - [ ] Cards and chips use the orb wash with no inset shadows or glossy highlights.
-- [ ] Speaker colours use the bubble tokens.
+- [ ] Speaker colours use the bubble tokens, and no hue outside the orb palette appears.
 - [ ] Nothing animates in `idle` or `ended`.
 - [ ] Checked at desktop width and below 860px.
