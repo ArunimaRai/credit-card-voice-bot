@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "bot",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "python",
+        "-m",
+        "bot.main"
+      ],
+      "port": 7860
+    },
+    {
+      "name": "bot-test-7861",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "python",
+        "-m",
+        "bot.main",
+        "--port",
+        "7861"
+      ],
+      "port": 7861
+    }
+  ]
+}

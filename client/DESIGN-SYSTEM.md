@@ -49,7 +49,7 @@ dispute dot, the connecting dot).
 - Border: `1px solid var(--orb-line)`.
 - Shadow: `var(--card-shadow)`, a hairline plus a soft drop. Nothing inset.
 - Radius: 20px for cards, 99px for pills and chips.
-- Used by `.an-hero`, `.an-card`, `.status-pill`, `.caller-chip`.
+- Used by `.an-hero`, `.an-card`, `.stat`, `.flow li`, `.caller-chip`.
 
 ### Strong wash (one highlighted block inside a card)
 - Background: `var(--orb-wash-strong)` (about 7–9% alpha), border `var(--accent-100)`, radius 14px.
@@ -92,7 +92,7 @@ Tokens: `--cta-bg`, `--cta-border`, `--cta-ink`, `--cta-shadow`, `--cta-shadow-h
 | Component | Where | Notes |
 | --- | --- | --- |
 | `.call-btn` (Start Speaking) | Orb panel | 15px × 30px padding, 16px/500 type. Shown only on the home screen. |
-| `.new-call-btn` (+ New call) | Header, right | Same size as Start Speaking (16px/500, 19px icon, about 48px tall). Replaces the status pill after a call ends. |
+| `.new-call-btn` (+ New call) | Header, right | Same size as Start Speaking (16px/500, 19px icon, about 48px tall). Shown only on the console page, after a call ends. |
 
 Hover: lift 1px and use `--cta-shadow-hover`. Active: `scale(0.97)`.
 Focus: `outline: 2–3px solid var(--accent-600); outline-offset: 2–3px`.
@@ -106,6 +106,17 @@ Used for switching views, never for "do this next".
 | `.tabs button[aria-selected="true"]` | | Stays white. Marked by `--accent-700` text at 600, a 1px `--accent-300` ring and a soft indigo drop. Never the dark fill. |
 
 ### State variants of the call button
+| `.seg` | Page filters (Personas) | Same pattern at 13px, `aria-pressed` marks the selected segment. |
+
+### Header and page nav
+- Left: the brand mark and the "Mumbai Bank" wordmark only, no product name or divider.
+  The brand links to `#/`, the call console; there is no "Call console" nav item.
+- Right (`.header-end`): the `.site-nav` links, then **+ New call** when it shows.
+- `.site-nav` links sit directly on the header: 15.5px/500 `--ink-2`, 32px apart, no pill,
+  track or outline. Hover goes to `--ink`. The current page (`aria-current="page"`) is
+  `--ink` at 600 with a 2px `--accent-500` rule on the header's bottom edge.
+- At 600px and below the nav takes its own row under the brand (15px, 22px apart).
+- There is no status pill; the orb panel's timer and caption carry the call state.
 - `data-mode="hangup"`: coral fill, hang-up icon.
 - `data-mode="connecting"`: `--surface-2` fill, `--ink-2` text, spinner, no shadow.
 
@@ -184,16 +195,51 @@ transcript, so the customer can see what was misheard, but it must read as "not 
 
 | State | Orb | Orb-panel button | Header right |
 | --- | --- | --- | --- |
-| `idle` | still | Start Speaking | status pill "Ready" |
-| `connecting` | moving, halo breathes | Connecting… (muted) | status pill "Connecting" |
-| `connected-idle` / `listening` / `bot-speaking` | moving, audio-reactive | Hang Up (coral) | status pill "On call · mm:ss" (teal) |
+| `idle` | still | Start Speaking | nothing |
+| `connecting` | moving, halo breathes | Connecting… (muted) | nothing |
+| `connected-idle` / `listening` / `bot-speaking` | moving, audio-reactive | Hang Up (coral) | nothing |
 | `ended` | still, grey | hidden | **+ New call** (dark pill). Clicking it goes back to `idle`. |
 
-## 11. Checklist for any UI change
+## 11. Pages: Guidelines, Personas, Analytics
+
+The header nav (and the brand, for the console) switches between four views by hash (`#/`,
+`#/guidelines`, `#/personas`, `#/analytics`). They live in the same document, so a live call keeps running while the
+user reads another page. `client/pages.js` holds the router and the three renderers; each
+page fetches `/api/insights/<page>` (`bot/insights.py`) when it opens and every 15s while
+open. Every number comes from files on disk; never hard-code one in the page.
+
+Page anatomy (`.page.doc`):
+- **Head** (`.doc-head`): `.an-k` kicker, 26–32px/600 `h1`, 15px `.doc-lead` in `--ink-2`
+  naming the source files in `<code>`, and on the right the `.doc-sync` line ("Live ·
+  updated hh:mm:ss" with a teal dot, amber when a refresh failed) plus a small white
+  Refresh button.
+- **Stat tiles** (`.stats` > `.stat`): orb wash, an `.an-k` label, a 28px/600 tabular value
+  (unit in a 14px `<small>`), a 12.5px `--ink-3` note. One row per page, at the top.
+- **Sections** (`.doc-section`): 19px/600 `h2`, a 13.5px `.doc-sub`, then cards in a
+  `.doc-grid` (two columns, one below 1000px).
+- **Tables** (`.tbl` in `.tbl-wrap`, inside an `.an-card`): uppercase 11px headers, hairline
+  rows, numbers right-aligned and tabular, IDs in `--font-mono` `--ink-3`. The wrapper
+  scrolls sideways on phones so the page itself never does.
+- **Rule lists** (`.rules`): a 26px `--accent-50` numbered disc and the rule text.
+- **Call flow** (`.flow`): one orb-wash card per stage; the sample line uses the bot
+  bubble fill (`.flow-say`).
+- **Metric rows** (`.metric`, Analytics): name 14px/600, value 18px/600 right, description
+  12.5px `--ink-3`. A criterion with no data shows "Not measured yet" in `--ink-3`, never a
+  placeholder number.
+- **Bars** (`.bars-list`): single-series horizontal bars, one hue (`--accent-500`), 10px
+  tall, 4px radius on a `--surface-2` track, the value in ink beside the bar. `.hl` marks the
+  one live item in teal (the STT config in use). No legends, since there is one series.
+- **Self-evolving callout** (`.evolve`, Personas): the strong wash block with an icon tile,
+  an explanation and a `.loop` row of four counts on white. One per page.
+- New chips: `.chip.ok` (teal: passed, easy, learned live) and `.chip.accent` (indigo:
+  from the bank's brief).
+
+## 12. Checklist for any UI change
 
 - [ ] Uses existing tokens. Any new colour is added to `:root` and to this file.
 - [ ] Primary actions use the dark CTA pill; selected toggle segments use the white secondary style.
 - [ ] Cards and chips use the orb wash with no inset shadows or glossy highlights.
 - [ ] Speaker colours use the bubble tokens, and no hue outside the orb palette appears.
 - [ ] Nothing animates in `idle` or `ended`.
-- [ ] Checked at desktop width and below 860px.
+- [ ] Checked at desktop width, below 860px and at 375px (no horizontal page scroll).
+- [ ] Page numbers come from `/api/insights/*`, not from the markup.

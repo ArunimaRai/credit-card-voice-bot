@@ -554,3 +554,17 @@ if __name__ == "__main__":
         return entry
 
     main()
+    # Guidelines, Personas and Analytics pages: recomputed from disk on every request.
+    @runner_app.get("/pages.js", include_in_schema=False)
+    async def _serve_pages():
+        return FileResponse(client_dir / "pages.js", media_type="text/javascript")
+
+    @runner_app.get("/api/insights/{page}", include_in_schema=False)
+    async def _insights(page: str):
+        from bot import insights
+
+        views = {"guidelines": insights.guidelines, "personas": insights.personas, "analytics": insights.analytics}
+        if page not in views:
+            raise HTTPException(status_code=404, detail="unknown page")
+        return views[page]()
+
