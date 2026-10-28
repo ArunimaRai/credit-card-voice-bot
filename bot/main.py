@@ -24,7 +24,7 @@ from openai import AsyncOpenAI
 from pipecat.adapters.llm.schemas.function_schema import FunctionSchema
 from pipecat.adapters.llm.schemas.tools_schema import ToolsSchema
 from pipecat.audio.vad.silero import SileroVADAnalyzer
-from pipecat.frames.frames import Frame, LLMFullResponseEndFrame, LLMFullResponseStartFrame, LLMRunFrame, LLMTextFrame, TranscriptionFrame
+from pipecat.frames.frames import Frame, LLMFullResponseEndFrame, LLMFullResponseStartFrame, LLMRunFrame, LLMTextFrame, TranscriptionFrame, TTSSpeakFrame
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.worker import PipelineParams, PipelineWorker
 from pipecat.processors.aggregators.llm_context import LLMContext
@@ -43,7 +43,7 @@ from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.workers.runner import WorkerRunner
 
 from bot import analysis, guardrails
-from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt
+from bot.prompting import PROMPT_VERSION, build_developer_message, build_system_prompt, opening_line
 from bot.schema import validate_outcome
 from bot.state import CallState
 from bot.tools import RECORD_OUTCOME
@@ -323,10 +323,17 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         # The console needs this id to fetch the post-call analysis once the
         # data channel is gone (GET /api/calls/{call_id}/analysis).
         await worker.rtvi.send_server_message({"type": "call-started", "call_id": runner_args.session_id})
-        context.add_message(
-            {"role": "developer", "content": "The call has connected. Begin the call now."}
-        )
-        await worker.queue_frames([LLMRunFrame()])
+        if customer is not None:
+            # The opening line is fixed, so skip the LLM round trip (and the
+            # guardrail buffer) and send it straight to TTS. Measured
+            # 2026-10-28: that cuts ~1.1-1.7s of silence at pickup. It is
+            # still appended to the context, so the LLM sees it was said.
+            await worker.queue_frames([TTSSpeakFrame(opening_line(customer))])
+        else:
+            context.add_message(
+                {"role": "developer", "content": "The call has connected. Begin the call now."}
+            )
+            await worker.queue_frames([LLMRunFrame()])
 
     @transport.event_handler("on_client_connected")
     async def on_client_connected(transport, client):

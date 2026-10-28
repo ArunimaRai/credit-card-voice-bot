@@ -22,6 +22,13 @@ def _spoken_date(iso: str) -> str:
     return f"{d.day}{suffix} {d.strftime('%B')}"
 
 
+def opening_line(customer: dict) -> str:
+    """The first thing said on every call. Spoken straight to TTS by
+    bot/main.py rather than generated, so the customer isn't left in ~1.5s
+    of silence while the LLM writes a line that never changes."""
+    return f"Hello, this is Shreya calling from Mumbai Bank. Am I speaking to {customer['customer_name']}?"
+
+
 def amount_details(customer: dict) -> str:
     """The scripted line spoken only when the customer asks how much is due.
     Built in code, not left to the model, so every figure in it is the
