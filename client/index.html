@@ -13,7 +13,6 @@
       --bg: #ffffff;
       --surface: #ffffff;
       --surface-2: #f6f7fb;
-      --surface-3: #fbfbfe;
       --dot: rgba(37, 7, 133, 0.07);
       --ink: #15161a;
       --ink-2: #52555d;
@@ -35,13 +34,9 @@
       --live-100: #c8ecea;
       --ok-700: #157a72;
 
-      /* speaker colours (from the reference bubbles) */
+      /* speaker ink (bubble fills are --bubble-bot / --bubble-user below) */
       --lav-bg: #ebeefc;
-      --lav-bg-2: #e4e8fa;
-      --lav-line: #d5dbf7;
       --lav-ink: #4150a8;
-      --peach-bg: #fcefe6;
-      --peach-bg-2: #f9e7da;
       --peach-line: #f3d6c1;
       --peach-ink: #a3582b;
 
@@ -59,6 +54,39 @@
       --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
       --shadow-sm: 0 1px 2px rgba(28, 29, 31, 0.04);
       --shadow-md: 0 30px 70px -36px rgba(37, 7, 133, 0.22), 0 2px 6px rgba(28, 29, 31, 0.03);
+
+      /* orb wash: a faint tint of the sphere's indigo / cyan / pink on white.
+         Used on cards, chips and bubbles. Keep it barely there; see client/DESIGN-SYSTEM.md. */
+      --orb-line: rgba(124, 108, 255, 0.14);
+      --orb-wash:
+        radial-gradient(120% 95% at 0% 0%, rgba(124, 108, 255, 0.05), transparent 60%),
+        radial-gradient(90% 85% at 100% 0%, rgba(60, 224, 255, 0.04), transparent 62%),
+        radial-gradient(110% 95% at 85% 100%, rgba(255, 94, 168, 0.03), transparent 65%),
+        #ffffff;
+      --orb-wash-strong:
+        radial-gradient(110% 120% at 0% 0%, rgba(124, 108, 255, 0.09), transparent 62%),
+        radial-gradient(90% 110% at 100% 100%, rgba(60, 224, 255, 0.07), transparent 62%),
+        #f9f9fe;
+      --card-shadow: 0 1px 2px rgba(37, 7, 133, 0.04), 0 8px 24px -20px rgba(37, 7, 133, 0.16);
+
+      /* primary CTA: the dark Start Speaking pill. Every primary or selected control uses it. */
+      --cta-bg: linear-gradient(180deg, #2c2c35, #15161a);
+      --cta-border: #15161a;
+      --cta-ink: #ffffff;
+      --cta-shadow: 0 14px 28px -14px rgba(21, 22, 26, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      --cta-shadow-hover: 0 18px 32px -14px rgba(21, 22, 26, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+
+      /* speaker bubbles: Shreya = indigo/cyan wash, customer = peach/pink wash */
+      --bubble-bot:
+        radial-gradient(120% 140% at 0% 0%, rgba(124, 108, 255, 0.10), transparent 60%),
+        radial-gradient(100% 120% at 100% 100%, rgba(60, 224, 255, 0.07), transparent 60%),
+        #f6f6ff;
+      --bubble-bot-line: rgba(124, 108, 255, 0.18);
+      --bubble-user:
+        radial-gradient(120% 140% at 100% 0%, rgba(255, 94, 168, 0.08), transparent 60%),
+        radial-gradient(100% 120% at 0% 100%, rgba(255, 170, 130, 0.10), transparent 60%),
+        #fff7f2;
+      --bubble-user-line: rgba(232, 150, 110, 0.28);
       color-scheme: light;
     }
     * { box-sizing: border-box; }
@@ -98,13 +126,26 @@
     .status-pill {
       display: inline-flex; align-items: center; gap: 8px;
       padding: 7px 14px 7px 12px; border-radius: 99px;
-      background: var(--surface); border: 1px solid var(--line);
+      background: var(--orb-wash); border: 1px solid var(--orb-line); box-shadow: var(--card-shadow);
       font-size: 13px; font-weight: 500; color: var(--ink-2);
       font-variant-numeric: tabular-nums; white-space: nowrap;
     }
+    .status-pill[hidden], .new-call-btn[hidden] { display: none; }
+    .new-call-btn {
+      display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+      padding: 8px 16px 8px 12px; border-radius: 99px;
+      background: var(--cta-bg); border: 1px solid var(--cta-border); box-shadow: var(--cta-shadow);
+      font-size: 13px; font-weight: 500; color: var(--cta-ink); white-space: nowrap;
+      animation: riseIn 0.4s var(--ease-smooth) both;
+      transition: transform 0.2s var(--ease-out-quint), border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .new-call-btn svg { width: 15px; height: 15px; }
+    .new-call-btn:hover { transform: translateY(-1px); box-shadow: var(--cta-shadow-hover); }
+    .new-call-btn:active { transform: scale(0.97); }
+    .new-call-btn:focus-visible { outline: 2px solid var(--accent-600); outline-offset: 2px; }
     .status-pill .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--live); position: relative; }
     .status-pill[data-state="connecting"] .sdot { background: var(--amber); }
-    .status-pill[data-state="live"] { color: var(--ink); border-color: var(--live-100); background: var(--live-50); }
+    .status-pill[data-state="live"] { color: var(--ink); border-color: var(--live-100); background: radial-gradient(120% 140% at 0% 0%, rgba(60, 224, 255, 0.16), transparent 60%), linear-gradient(180deg, #f2fbfa, var(--live-50)); }
     .status-pill[data-state="live"] .sdot::after {
       content: ""; position: absolute; inset: -4px; border-radius: 50%;
       background: var(--live); opacity: 0.35; animation: ping 1.6s ease-out infinite;
@@ -148,8 +189,8 @@
     .caller-chip {
       margin-top: 18px; display: inline-flex; align-items: center; gap: 8px;
       padding: 6px 12px 6px 8px; border-radius: 99px;
-      background: var(--surface); border: 1px solid var(--line);
-      font-size: 12.5px; color: var(--ink-2); box-shadow: var(--shadow-sm);
+      background: var(--orb-wash); border: 1px solid var(--orb-line);
+      font-size: 12.5px; color: var(--ink-2); box-shadow: var(--card-shadow);
     }
     .caller-chip svg { width: 16px; height: 16px; flex-shrink: 0; }
     .caller-chip .num { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-3); }
@@ -208,6 +249,12 @@
     .console[data-state="connecting"] .orb-halo { animation: breatheHalo 1.4s ease-in-out infinite; }
     @keyframes breatheHalo { 0%, 100% { opacity: 0.4; transform: scale(0.97); } 50% { opacity: 1; transform: scale(1.06); } }
     .console[data-state="ended"] .orb canvas { filter: grayscale(0.8); }
+    /* the orb only moves while a call is connecting or live */
+    .console[data-state="idle"] .orb,
+    .console[data-state="ended"] .orb,
+    .console[data-state="idle"] .orb-wrap::after,
+    .console[data-state="ended"] .orb-wrap::after { animation-play-state: paused; }
+    .console[data-state="ended"] .call-btn { display: none; }
 
     /* ---------- the one call button: Start Speaking ↔ Hang Up ---------- */
     .call-btn {
@@ -215,12 +262,12 @@
       display: inline-flex; align-items: center; gap: 10px;
       padding: 15px 30px; border-radius: 99px; cursor: pointer;
       font-size: 16px; font-weight: 500; letter-spacing: -0.01em;
-      color: #fff; background: linear-gradient(180deg, #2c2c35, #15161a);
-      border: 1px solid #15161a;
-      box-shadow: 0 14px 28px -14px rgba(21, 22, 26, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      color: var(--cta-ink); background: var(--cta-bg);
+      border: 1px solid var(--cta-border);
+      box-shadow: var(--cta-shadow);
       transition: transform 0.25s var(--ease-out-quint), background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     }
-    .call-btn:hover { transform: translateY(-1px); box-shadow: 0 18px 32px -14px rgba(21, 22, 26, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
+    .call-btn:hover { transform: translateY(-1px); box-shadow: var(--cta-shadow-hover); }
     .call-btn:active { transform: scale(0.97); }
     .call-btn:focus-visible { outline: 3px solid var(--accent-600); outline-offset: 3px; }
     .call-btn svg { width: 19px; height: 19px; flex-shrink: 0; }
@@ -270,7 +317,7 @@
     }
     .tp-sub { font-size: 13px; color: var(--ink-3); margin-top: 3px; padding-left: 18px; }
 
-    .tabs { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 99px; padding: 3px; }
+    .tabs { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 99px; padding: 3px; }
     .tabs[hidden] { display: none; }
     .tabs button {
       border: none; background: transparent; cursor: pointer;
@@ -278,7 +325,8 @@
       padding: 6px 15px; border-radius: 99px;
       transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
     }
-    .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(28, 29, 31, 0.1); }
+    .tabs button:not([aria-selected="true"]):hover { color: var(--ink); }
+    .tabs button[aria-selected="true"] { background: var(--cta-bg); color: var(--cta-ink); box-shadow: 0 6px 14px -8px rgba(21, 22, 26, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14); }
     .tabs button:focus-visible, .an-quote:focus-visible { outline: 2px solid var(--accent-600); outline-offset: 2px; }
 
     .tp-body { flex: 1; min-height: 0; overflow-y: auto; padding: 24px 32px 28px; scroll-behavior: smooth; }
@@ -294,11 +342,10 @@
     .bubble {
       padding: 15px 22px; font-size: 16.5px; line-height: 1.5; letter-spacing: -0.01em;
       border: 1px solid; border-radius: 24px;
-      box-shadow: inset 0 -2px 0 rgba(28, 29, 31, 0.03);
       overflow-wrap: anywhere;
     }
-    .msg.bot .bubble { background: linear-gradient(180deg, var(--lav-bg), var(--lav-bg-2)); border-color: var(--lav-line); border-bottom-left-radius: 8px; }
-    .msg.user .bubble { background: linear-gradient(180deg, var(--peach-bg), var(--peach-bg-2)); border-color: var(--peach-line); border-bottom-right-radius: 8px; }
+    .msg.bot .bubble { background: var(--bubble-bot); border-color: var(--bubble-bot-line); border-bottom-left-radius: 8px; }
+    .msg.user .bubble { background: var(--bubble-user); border-color: var(--bubble-user-line); border-bottom-right-radius: 8px; }
     .meta { display: flex; gap: 8px; align-items: baseline; font-size: 12px; color: var(--ink-3); margin: 0 8px 6px; }
     .meta b { font-weight: 600; color: var(--ink-2); }
     .meta .t { font-variant-numeric: tabular-nums; }
@@ -318,9 +365,9 @@
     .empty-state { height: 100%; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
     .empty-art { position: relative; width: 168px; height: 104px; margin-bottom: 22px; }
     .empty-art span { position: absolute; height: 30px; border-radius: 15px; border: 1px solid; animation: riseIn 0.6s var(--ease-smooth) both; }
-    .empty-art .e1 { left: 0; top: 0; width: 120px; background: var(--lav-bg); border-color: var(--lav-line); border-bottom-left-radius: 6px; }
-    .empty-art .e2 { right: 0; top: 36px; width: 90px; background: var(--peach-bg); border-color: var(--peach-line); border-bottom-right-radius: 6px; animation-delay: 0.12s; }
-    .empty-art .e3 { left: 0; top: 72px; width: 72px; background: var(--lav-bg); border-color: var(--lav-line); border-bottom-left-radius: 6px; animation-delay: 0.24s; }
+    .empty-art .e1 { left: 0; top: 0; width: 120px; background: var(--bubble-bot); border-color: var(--bubble-bot-line); border-bottom-left-radius: 6px; }
+    .empty-art .e2 { right: 0; top: 36px; width: 90px; background: var(--bubble-user); border-color: var(--bubble-user-line); border-bottom-right-radius: 6px; animation-delay: 0.12s; }
+    .empty-art .e3 { left: 0; top: 72px; width: 72px; background: var(--bubble-bot); border-color: var(--bubble-bot-line); border-bottom-left-radius: 6px; animation-delay: 0.24s; }
     .empty-title { font-size: 16px; font-weight: 600; letter-spacing: -0.015em; }
     .empty-sub { font-size: 14px; color: var(--ink-3); margin-top: 6px; max-width: 300px; line-height: 1.5; }
 
@@ -329,7 +376,8 @@
     #analysis[hidden] { display: none; }
     .an-k { font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); font-weight: 600; }
 
-    .an-hero { border: 1px solid var(--line); border-radius: 20px; padding: 20px 22px; background: var(--surface-3); }
+    .an-hero, .an-card { border: 1px solid var(--orb-line); border-radius: 20px; background: var(--orb-wash); box-shadow: var(--card-shadow); }
+    .an-hero { padding: 20px 22px; }
     .an-hero-row { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
     .an-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--ink-3); flex-shrink: 0; align-self: center; box-shadow: 0 0 0 4px var(--line-soft); }
     .an-hero-title { font-size: 22px; font-weight: 600; letter-spacing: -0.025em; }
@@ -343,10 +391,10 @@
     .an-follow {
       display: grid; grid-template-columns: auto 1fr auto; gap: 14px; align-items: center;
       margin-top: 16px; padding: 13px 15px; border-radius: 14px;
-      background: var(--lav-bg); border: 1px solid var(--lav-line);
+      background: var(--orb-wash-strong); border: 1px solid var(--accent-100);
     }
     .an-follow.none { background: var(--surface-2); border-color: var(--line-soft); }
-    .an-follow-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); color: var(--lav-ink); display: flex; align-items: center; justify-content: center; }
+    .an-follow-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--surface); border: 1px solid var(--orb-line); color: var(--lav-ink); display: flex; align-items: center; justify-content: center; }
     .an-follow.none .an-follow-icon { color: var(--ink-3); }
     .an-follow-icon svg { width: 18px; height: 18px; }
     .an-follow-title { font-size: 14px; font-weight: 600; }
@@ -363,12 +411,12 @@
 
     .an-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
     @media (max-width: 1000px) { .an-grid { grid-template-columns: 1fr; } }
-    .an-card { border: 1px solid var(--line); border-radius: 20px; padding: 18px 20px; background: var(--surface); }
+    .an-card { padding: 18px 20px; }
 
     .an-sent-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-    .sent-pill { font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 99px; background: var(--surface-2); color: var(--ink-2); }
-    .sent-pill.frustrated { background: var(--red-50); color: var(--red); }
-    .sent-pill.positive { background: var(--live-50); color: var(--ok-700); }
+    .sent-pill { font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 99px; background: var(--accent-50); color: var(--ink-2); border: 1px solid var(--orb-line); }
+    .sent-pill.frustrated { background: var(--red-50); color: var(--red); border-color: var(--red-line); }
+    .sent-pill.positive { background: var(--live-50); color: var(--ok-700); border-color: var(--live-100); }
     .an-traj { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
     .an-traj b { font-weight: 600; color: var(--ink); }
     .an-traj .arrow { color: var(--ink-3); }
@@ -376,11 +424,11 @@
     .an-quotes { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
     .an-quote {
       text-align: left; cursor: pointer;
-      border: 1px solid var(--peach-line); background: var(--peach-bg); color: var(--ink);
+      border: 1px solid var(--bubble-user-line); color: var(--ink); background: var(--bubble-user);
       padding: 9px 13px; border-radius: 14px 14px 4px 14px; font-size: 13.5px; line-height: 1.45;
       transition: transform 0.15s ease, border-color 0.15s ease;
     }
-    .an-quote:hover { transform: translateX(-2px); border-color: var(--peach-ink); }
+    .an-quote:hover { transform: translateX(-2px); border-color: var(--peach-line); }
     .an-quote .turn { display: block; font-size: 11px; color: var(--ink-3); margin-top: 3px; }
 
     .an-dl { display: grid; grid-template-columns: auto 1fr; gap: 10px 16px; margin: 12px 0 0; font-size: 13.5px; }
@@ -463,6 +511,10 @@
       <div class="status-pill" id="statusPill" data-state="idle" role="status" aria-live="polite">
         <span class="sdot"></span><span id="statusText">Ready</span>
       </div>
+      <button class="new-call-btn" id="newCallBtn" type="button" hidden>
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg>
+        New call
+      </button>
     </div>
   </header>
 
@@ -529,6 +581,7 @@
     const capStatus = el("capStatus");
     const statusPill = el("statusPill");
     const statusText = el("statusText");
+    const newCallBtn = el("newCallBtn");
     const transcriptPanel = el("transcriptPanel");
     const panelTitle = el("panelTitle");
     const panelSub = el("panelSub");
@@ -548,7 +601,7 @@
       "connected-idle": { cap: "Connected", pill: "On call" },
       listening: { cap: "Listening…", pill: "On call" },
       "bot-speaking": { cap: `${AGENT_NAME} is speaking`, pill: "On call" },
-      ended: { cap: "Call ended · start again anytime", pill: "Call ended" },
+      ended: { cap: "Call ended", pill: "Call ended" },
     };
 
     function setCallScreenState(state) {
@@ -565,6 +618,7 @@
       statusPill.dataset.state = inCall ? "live" : state;
       if (!inCall) statusText.textContent = STATE_COPY[state].pill;
       transcriptPanel.dataset.live = String(inCall);
+      orb?.setActive(inCall || state === "connecting");
     }
 
     // Only used when the server never returns an analysis (older bot.main
@@ -679,6 +733,9 @@
       const showAnalysis = ended && activeTab === "analysis";
 
       tabsEl.hidden = !ended;
+      // Once a call has ended the header pill becomes the way back to a fresh call.
+      statusPill.hidden = ended;
+      newCallBtn.hidden = !ended;
       panelTitle.textContent = showAnalysis ? "Call Analysis" : ended ? "Transcript" : "Live Transcript";
       panelSub.textContent = !call
         ? "Appears here as you talk"
@@ -1130,6 +1187,7 @@ void main() {
       let prog = null;
       let u = {};
       let ready = false;
+      let dirty = true;
       const compile = (type, src) => {
         const sh = gl.createShader(type);
         gl.shaderSource(sh, src);
@@ -1168,13 +1226,13 @@ void main() {
         ready = true;
       };
       canvas.addEventListener("webglcontextlost", (e) => { e.preventDefault(); ready = false; });
-      canvas.addEventListener("webglcontextrestored", init);
+      canvas.addEventListener("webglcontextrestored", () => { init(); dirty = true; });
       init();
 
       const resize = () => {
         const side = Math.max(1, Math.min(canvas.clientWidth, canvas.clientHeight));
         const px = Math.min(Math.round(side * Math.min(window.devicePixelRatio || 1, 2)), 1280);
-        if (canvas.width !== px) { canvas.width = px; canvas.height = px; }
+        if (canvas.width !== px) { canvas.width = px; canvas.height = px; dirty = true; }
       };
       new ResizeObserver(resize).observe(canvas);
       resize();
@@ -1202,11 +1260,20 @@ void main() {
         body.spin += body.spinVel * dt;
       };
 
-      const start = performance.now();
+      // The shader clock only runs while a call is live, so the orb holds still
+      // before the first call and after hangup. A paused orb redraws only when
+      // its canvas is resized or restored.
+      let active = false;
+      let clock = 0;
+      let lastFrame = performance.now();
       (function tick() {
         requestAnimationFrame(tick);
-        if (!ready || !prog) return;
-        const tNow = ((performance.now() - start) / 1000) * cfg.speed;
+        const now = performance.now();
+        if (active) clock += Math.min(0.1, (now - lastFrame) / 1000) * cfg.speed;
+        lastFrame = now;
+        if (!ready || !prog || (!active && !dirty)) return;
+        dirty = false;
+        const tNow = clock;
         advance(tNow);
         gl.useProgram(prog);
         gl.viewport(0, 0, canvas.width, canvas.height);
@@ -1227,7 +1294,10 @@ void main() {
         gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
       })();
 
-      return { setAudio(level) { cfg.audio = level; } };
+      return {
+        setAudio(level) { cfg.audio = level; },
+        setActive(on) { active = on; },
+      };
     }
     const orb = createOrb(el("orbCanvas"));
 
@@ -1391,6 +1461,16 @@ void main() {
       else if (mode === "hangup") hangUp();
     });
 
+    // New call: back to the home screen; the call itself still starts from Start Speaking.
+    newCallBtn.addEventListener("click", () => {
+      currentCall = null;
+      activeTab = "analysis";
+      clearError();
+      if (location.search) history.replaceState(null, "", location.pathname);
+      setCallScreenState("idle");
+      renderPanel();
+    });
+
     // ?call=<call_id> reopens a saved call's analysis (data/calls/), so a
     // reviewer can link straight to one instead of replaying it.
     async function openSavedCall(id) {
@@ -1405,6 +1485,8 @@ void main() {
         durationMs: (rec.duration_sec ?? 0) * 1000, endedAt: Date.now(),
       };
       activeTab = "analysis";
+      setCallScreenState("ended");
+      capTime.textContent = fmtTime(currentCall.durationMs);
       renderPanel();
       if (a.status === "pending") loadAnalysis(currentCall);
     }
