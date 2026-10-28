@@ -212,6 +212,13 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         logger.info(f"record_outcome: {args}")
         call_state["outcome_recorded"] = True
         await post_outcome(base_payload(args))
+        # Client-side console (client/index.html) needs this to show a real
+        # confirmation/outcome badge instead of guessing from transcript text.
+        # Not sent from on_client_disconnected's forced-no_outcome fallback
+        # below: the data channel is already tearing down there, so the
+        # client instead treats "disconnected with no call-outcome message
+        # received" as the no_outcome case itself (same semantics, no race).
+        await worker.rtvi.send_server_message({"type": "call-outcome", "outcome": args})
         await params.result_callback({"status": "recorded"})
 
     raw_params = TOOLS_BY_VERSION[PROMPT_VERSION][0]["function"]["parameters"]

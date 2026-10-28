@@ -2,47 +2,674 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Mumbai Bank — Collections Voicebot (dev client)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mumbai Bank · Collections Console</title>
   <style>
-    body { font-family: -apple-system, system-ui, sans-serif; max-width: 640px; margin: 48px auto; color: #1a1a1a; }
-    button { font-size: 16px; padding: 10px 20px; border-radius: 8px; border: 1px solid #333; background: #1a1a1a; color: #fff; cursor: pointer; }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #status { margin: 16px 0; font-weight: 600; }
-    #log { white-space: pre-wrap; background: #f4f4f4; border-radius: 8px; padding: 12px; height: 320px; overflow-y: auto; font-size: 13px; line-height: 1.5; }
-    .bot { color: #0b5fff; }
-    .user { color: #1a7a1a; }
+    :root {
+      --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+      --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, monospace;
+
+      --bg: #ffffff;
+      --text: #0e1116;
+      --text-dim: #6b7280;
+      --text-faint: #9aa1ac;
+      --border: #e7e9f0;
+      --border-soft: #f0f1f6;
+
+      --blue: #2f6feb;
+      --blue-700: #1e4fc4;
+      --blue-50: #eef4ff;
+      --blue-200: #c6dafc;
+
+      --green: #1fae6b;
+      --green-50: #e9f8f0;
+
+      --red: #e0453f;
+      --red-50: #fdecec;
+
+      --slate: #9aa1ac;
+      --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+      --radius-lg: 18px;
+      --radius-md: 10px;
+      --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 1px rgba(16, 24, 40, 0.03);
+      --shadow-md: 0 10px 24px rgba(16, 24, 40, 0.08), 0 2px 6px rgba(16, 24, 40, 0.05);
+      color-scheme: light;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); }
+    body { font-family: var(--font); min-height: 100vh; -webkit-font-smoothing: antialiased; }
+
+    .app { max-width: 1080px; margin: 0 auto; padding: 28px 24px 56px; }
+
+    @keyframes riseIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+    /* ---------- brand header ---------- */
+    .brand-bar {
+      display: flex; align-items: center; gap: 16px;
+      padding-bottom: 22px; margin-bottom: 22px;
+      border-bottom: 1px solid var(--border);
+      animation: riseIn 0.55s var(--ease-smooth) both;
+    }
+    .logo-badge { flex-shrink: 0; filter: drop-shadow(0 4px 10px rgba(47, 111, 235, 0.3)); }
+    .brand-name { font-weight: 700; font-size: 26px; letter-spacing: -0.01em; line-height: 1.15; }
+    .brand-sub { font-size: 13.5px; color: var(--text-dim); margin-top: 2px; }
+
+    /* ---------- layout ---------- */
+    .layout { display: grid; grid-template-columns: 300px 1fr; gap: 24px; align-items: stretch; }
+    @media (max-width: 760px) { .layout { grid-template-columns: 1fr; } }
+
+    .panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      animation: riseIn 0.55s var(--ease-smooth) both;
+    }
+    .panel-transcript { animation-delay: 0.14s; }
+
+    /* ======================================================================
+       Phone frame — simulated iOS incoming/in-call screen
+       ====================================================================== */
+    .phone-frame { animation: riseIn 0.55s var(--ease-smooth) both; animation-delay: 0.08s; }
+    .phone-body {
+      position: relative;
+      height: 100%;
+      background: linear-gradient(165deg, #2b2d33, #121317);
+      border-radius: 44px;
+      padding: 10px;
+      box-shadow: var(--shadow-md), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+    .phone-body::before, .phone-body::after {
+      content: ""; position: absolute; width: 3px; background: #1a1b1f; border-radius: 2px;
+    }
+    .phone-body::before { left: -3px; top: 90px; height: 50px; } /* volume/action button hint */
+    .phone-body::after { right: -3px; top: 120px; height: 70px; } /* power button hint */
+
+    .phone-screen {
+      position: relative;
+      height: 100%;
+      min-height: 480px;
+      border-radius: 34px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: #fff;
+    }
+
+    .screen-bg { position: absolute; inset: 0; background: #121319; overflow: hidden; }
+    .screen-bg .blob {
+      position: absolute; border-radius: 50%; filter: blur(46px);
+      opacity: 0.85; transition: background 0.7s ease;
+    }
+    .screen-bg .b1 { width: 220px; height: 220px; top: -50px; left: -40px; background: var(--blob-1); animation: drift1 15s ease-in-out infinite alternate; }
+    .screen-bg .b2 { width: 210px; height: 210px; bottom: 18%; right: -60px; background: var(--blob-2); animation: drift2 19s ease-in-out infinite alternate; }
+    .screen-bg .b3 { width: 190px; height: 190px; bottom: -70px; left: 15%; background: var(--blob-3); animation: drift3 12s ease-in-out infinite alternate; }
+    @keyframes drift1 { from { transform: translate(0, 0) scale(1); } to { transform: translate(26px, 18px) scale(calc(1 + var(--level, 0) * 0.3)); } }
+    @keyframes drift2 { from { transform: translate(0, 0) scale(1); } to { transform: translate(-22px, -16px) scale(calc(1 + var(--level, 0) * 0.3)); } }
+    @keyframes drift3 { from { transform: translate(0, 0) scale(1); } to { transform: translate(18px, -22px) scale(calc(1 + var(--level, 0) * 0.25)); } }
+
+    .phone-frame { --blob-1: #3a4252; --blob-2: #4a3c52; --blob-3: #52403a; }
+    .phone-frame[data-state="connecting"] { --blob-1: #1d4ed8; --blob-2: #2f6feb; --blob-3: #1e4fc4; }
+    .phone-frame[data-state="listening"], .phone-frame[data-state="connected-idle"] { --blob-1: #15935c; --blob-2: #1fae6b; --blob-3: #0f7a4c; }
+    .phone-frame[data-state="bot-speaking"] { --blob-1: #2f6feb; --blob-2: #1e4fc4; --blob-3: #4c87f5; }
+    .phone-frame[data-state="ended"] { --blob-1: #b23a35; --blob-2: #e0453f; --blob-3: #8f2e2a; }
+
+    .dynamic-island {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      width: 88px; height: 24px; background: #000; border-radius: 14px; z-index: 3;
+    }
+
+    .status-row {
+      position: relative; z-index: 2;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 0;
+      font-size: 13px; font-weight: 600; letter-spacing: 0.01em;
+    }
+    .status-icons { display: flex; align-items: center; gap: 4px; color: #fff; }
+    .status-icons svg { display: block; }
+    .ic-signal { width: 15px; height: 10px; }
+    .ic-wifi { width: 13px; height: 10px; }
+    .ic-battery { width: 21px; height: 10px; }
+
+    .caller-block { position: relative; z-index: 2; text-align: center; margin-top: 54px; padding: 0 16px; }
+    .caller-number { font-size: 23px; font-weight: 700; letter-spacing: -0.01em; }
+    .caller-verify { margin-top: 10px; transition: opacity 0.25s ease; }
+    .caller-verify[hidden] { display: none; }
+    .tc-label { display: block; font-size: 11.5px; color: rgba(255, 255, 255, 0.55); }
+    .tc-row { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 3px; font-size: 13px; font-weight: 600; color: rgba(255, 255, 255, 0.92); }
+    .tc-row svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .call-live-duration {
+      font-family: var(--font-mono);
+      font-size: 14px; margin-top: 8px; color: rgba(255, 255, 255, 0.75);
+      font-variant-numeric: tabular-nums;
+    }
+    .call-live-duration[hidden] { display: none; }
+
+    .call-ended-line { margin-top: 8px; font-size: 13px; font-weight: 600; color: #ff8d88; }
+    .call-ended-line[hidden] { display: none; }
+
+    .screen-spacer { flex: 1; }
+
+    .quick-actions { position: relative; z-index: 2; display: flex; justify-content: space-evenly; padding: 0 24px 18px; }
+    .quick-actions[hidden] { display: none; }
+    .qa { display: flex; flex-direction: column; align-items: center; gap: 6px; color: rgba(255, 255, 255, 0.85); }
+    .qa svg { width: 22px; height: 22px; }
+    .qa span.qa-label { font-size: 11.5px; }
+
+    .call-buttons { position: relative; z-index: 2; display: flex; justify-content: space-evenly; padding: 0 28px 20px; }
+    .call-buttons.single { justify-content: center; }
+    .call-buttons[hidden] { display: none; }
+    .cb-col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    button.cb {
+      width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-md);
+      transition: transform 0.16s var(--ease-spring), box-shadow 0.2s ease;
+    }
+    button.cb:hover { transform: translateY(-2px) scale(1.04); }
+    button.cb:active { transform: translateY(0) scale(0.94); }
+    button.cb svg { width: 23px; height: 23px; fill: #fff; }
+    button.cb.accept { background: var(--green); }
+    button.cb.decline { background: var(--red); }
+    button.cb.decline svg { transform: rotate(135deg); }
+    .cb-col .cb-label { font-size: 11.5px; color: rgba(255, 255, 255, 0.8); }
+
+    @keyframes shake {
+      10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); }
+      30%, 50%, 70% { transform: translateX(-3px); } 40%, 60% { transform: translateX(3px); }
+    }
+    button.cb.shake { animation: shake 0.32s ease; }
+
+    .home-indicator {
+      position: relative; z-index: 2; align-self: center;
+      width: 120px; height: 4px; border-radius: 3px;
+      background: rgba(255, 255, 255, 0.55);
+      margin-bottom: 10px;
+    }
+
+    /* ---------- right panel ---------- */
+    .transcript-head {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+      padding: 18px 22px; background: var(--blue-50);
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .th-left { display: flex; align-items: center; gap: 10px; }
+    .th-left .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue); flex-shrink: 0; }
+    .transcript-head h2 { font-size: 15px; font-weight: 700; margin: 0; }
+    button.toggle-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1.5px solid var(--blue); cursor: pointer;
+      background: #fff; color: var(--blue);
+      font-size: 12.5px; font-weight: 600;
+      padding: 7px 14px 7px 12px; border-radius: 99px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+    button.toggle-btn svg { width: 14px; height: 14px; }
+    button.toggle-btn:hover { background: var(--blue-50); }
+    button.toggle-btn[aria-pressed="true"] { background: var(--blue); color: #fff; }
+
+    .panel-transcript-body { padding: 0 22px 22px; min-height: 420px; }
+
+    /* ---------- summary strip ---------- */
+    .summary-strip { margin-top: 18px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    @media (max-width: 560px) { .summary-strip { grid-template-columns: repeat(2, 1fr); } }
+    .metric { border: 1px solid var(--border-soft); border-radius: var(--radius-md); padding: 10px 12px; background: #fcfcfd; }
+    .metric .k { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-faint); }
+    .metric .v { font-size: 14px; font-weight: 700; margin-top: 3px; line-height: 1.3; }
+    .metric .v.ok { color: var(--green); }
+    .metric .v.no { color: var(--red); }
+    .metric .d { font-size: 11px; color: var(--text-dim); margin-top: 1px; }
+    .metric .heuristic-tag {
+      display: inline-block; margin-left: 5px; font-size: 9px; font-weight: 600; letter-spacing: 0.03em;
+      color: var(--text-faint); border: 1px solid var(--border-soft); border-radius: 4px; padding: 1px 4px;
+      vertical-align: middle; cursor: help;
+    }
+
+    .live-note { margin-top: 18px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: var(--radius-md); font-size: 12px; color: var(--text-dim); }
+
+    /* ---------- empty state ---------- */
+    .empty-state { padding: 50px 10px 20px; text-align: center; }
+    .empty-icon {
+      width: 68px; height: 68px; margin: 0 auto 18px;
+      border-radius: 50%; background: var(--blue-50);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--blue);
+      animation: riseIn 0.5s var(--ease-smooth) both;
+    }
+    .empty-icon svg { width: 26px; height: 26px; }
+    .empty-title { font-size: 16px; font-weight: 700; color: var(--text); }
+    .empty-sub { font-size: 13px; color: var(--text-dim); margin-top: 5px; }
+
+    /* ---------- transcript body ---------- */
+    @keyframes msgIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .msg { border-left: 2px solid transparent; padding: 7px 0 7px 14px; margin-bottom: 2px; font-size: 14px; line-height: 1.5; }
+    .msg:last-child { animation: msgIn 0.28s var(--ease-smooth); }
+    .msg .role { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; display: flex; gap: 8px; align-items: baseline; margin-bottom: 2px; }
+    .msg .role .t { color: var(--text-faint); font-weight: 400; }
+    .msg.user { border-color: var(--green); }
+    .msg.user .role { color: var(--green); }
+    .msg.bot { border-color: var(--blue); }
+    .msg.bot .role { color: var(--blue); }
+    .msg.pending { opacity: 0.65; }
+    .msg.pending .text::after {
+      content: ""; display: inline-block; width: 5px; height: 5px; margin-left: 4px;
+      border-radius: 50%; background: currentColor; animation: dotblink 0.9s ease-in-out infinite;
+    }
+    @keyframes dotblink { 50% { opacity: 0.2; } }
+
+    #feed { display: flex; flex-direction: column; max-height: 420px; overflow-y: auto; margin-top: 18px; }
+    #split { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; margin-top: 18px; }
+    #split[hidden], #feed[hidden] { display: none; }
+    #split .col-head { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding-bottom: 6px; margin-bottom: 8px; border-bottom: 1px solid var(--border-soft); }
+    #split .col-customer .col-head { color: var(--green); border-bottom-color: var(--green); }
+    #split .col-bot .col-head { color: var(--blue); border-bottom-color: var(--blue); }
+    #split .col-body { max-height: 420px; overflow-y: auto; }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 8px; }
+
+    .error-banner {
+      margin-top: 14px; padding: 10px 14px;
+      border: 1px solid var(--red); background: var(--red-50); color: var(--red);
+      border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 12px;
+      display: none;
+    }
+    .error-banner.show { display: block; }
   </style>
 </head>
 <body>
-  <h2>Collections voicebot — dev test client</h2>
-  <p id="status">disconnected</p>
-  <button id="connectBtn">Start call</button>
-  <button id="disconnectBtn" disabled>Hang up</button>
-  <div id="log"></div>
+  <div class="app">
+    <header class="brand-bar">
+      <svg class="logo-badge" width="52" height="52" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bankGrad" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#4c87f5" />
+            <stop offset="1" stop-color="#1e4fc4" />
+          </linearGradient>
+        </defs>
+        <rect width="48" height="48" rx="13" fill="url(#bankGrad)" />
+        <g transform="translate(9,12)" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M0 6 15 0 30 6" />
+          <line x1="1.5" y1="6" x2="28.5" y2="6" />
+          <line x1="4" y1="9" x2="4" y2="19" />
+          <line x1="10" y1="9" x2="10" y2="19" />
+          <line x1="15" y1="9" x2="15" y2="19" />
+          <line x1="20" y1="9" x2="20" y2="19" />
+          <line x1="26" y1="9" x2="26" y2="19" />
+          <line x1="-0.5" y1="22" x2="30.5" y2="22" />
+        </g>
+      </svg>
+      <div>
+        <div class="brand-name">Mumbai Bank</div>
+        <div class="brand-sub">Credit card payment handling agent</div>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="phone-frame" id="phoneFrame" data-state="idle">
+        <div class="phone-body">
+          <div class="phone-screen">
+            <div class="screen-bg">
+              <span class="blob b1"></span>
+              <span class="blob b2"></span>
+              <span class="blob b3"></span>
+            </div>
+            <div class="dynamic-island"></div>
+
+            <div class="status-row">
+              <span id="statusClock">9:41</span>
+              <span class="status-icons">
+                <svg class="ic-signal" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="7" width="3" height="5" rx="0.6"/><rect x="5" y="5" width="3" height="7" rx="0.6"/><rect x="10" y="3" width="3" height="9" rx="0.6"/><rect x="15" y="0" width="3" height="12" rx="0.6"/></svg>
+                <svg class="ic-wifi" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M1 4.5a10 10 0 0 1 14 0"/><path d="M3.8 7.3a6 6 0 0 1 8.4 0"/><path d="M6.6 10a2.2 2.2 0 0 1 2.8 0"/></svg>
+                <svg class="ic-battery" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="18" height="8" rx="1.3" fill="currentColor"/><rect x="22.5" y="4" width="2" height="4" rx="1" fill="currentColor"/></svg>
+              </span>
+            </div>
+
+            <div class="caller-block">
+              <div class="caller-number">+91 22 6107 8000</div>
+              <div class="caller-verify" id="callerVerify">
+                <span class="tc-label">Truecaller Caller ID:</span>
+                <span class="tc-row">
+                  <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="#2BB24C"/><path d="M4.5 8.2 7 10.6 11.5 5.6" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Mumbai Bank Credit Card
+                </span>
+              </div>
+              <div class="call-live-duration" id="callLiveDuration" hidden>00:00</div>
+              <div class="call-ended-line" id="endedLine" hidden>Call ended</div>
+            </div>
+
+            <div class="screen-spacer"></div>
+
+            <div class="quick-actions" id="quickActions">
+              <div class="qa">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="qa-label">Remind Me</span>
+              </div>
+              <div class="qa">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span class="qa-label">Message</span>
+              </div>
+            </div>
+
+            <div class="call-buttons" id="ringButtons">
+              <div class="cb-col">
+                <button class="cb decline" id="declineBtn" type="button" aria-label="Decline">
+                  <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </button>
+                <span class="cb-label">Decline</span>
+              </div>
+              <div class="cb-col">
+                <button class="cb accept" id="acceptBtn" type="button" aria-label="Accept">
+                  <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </button>
+                <span class="cb-label">Accept</span>
+              </div>
+            </div>
+
+            <div class="call-buttons single" id="endButtons" hidden>
+              <div class="cb-col">
+                <button class="cb decline" id="endBtn" type="button" aria-label="End call">
+                  <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 4.18 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </button>
+                <span class="cb-label">End</span>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel-transcript">
+        <div class="transcript-head">
+          <div class="th-left">
+            <span class="dot"></span>
+            <h2>Live transcript</h2>
+          </div>
+          <button class="toggle-btn" id="splitBtn" aria-pressed="false" type="button">
+            <svg viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="6" height="12" rx="1.5" fill="currentColor"/><rect x="9" y="2" width="6" height="12" rx="1.5" stroke="currentColor" stroke-width="1.3"/></svg>
+            Split view
+          </button>
+        </div>
+
+        <div class="panel-transcript-body">
+          <div class="summary-strip" id="summaryStrip" hidden></div>
+          <div class="live-note" id="liveNote" hidden>Call in progress — duration, confirmation, and sentiment will appear here once the call ends.</div>
+
+          <div id="feed"></div>
+          <div id="split" hidden>
+            <div class="col col-customer">
+              <div class="col-head">Customer</div>
+              <div class="col-body" id="colCustomer"></div>
+            </div>
+            <div class="col col-bot">
+              <div class="col-head">Mumbai Bank bot</div>
+              <div class="col-body" id="colBot"></div>
+            </div>
+          </div>
+          <div class="error-banner" id="errorBanner"></div>
+        </div>
+      </section>
+    </main>
+  </div>
 
   <script type="module">
     import { PipecatClient } from "https://cdn.jsdelivr.net/npm/@pipecat-ai/client-js@1.15.0/+esm";
     import { SmallWebRTCTransport } from "https://cdn.jsdelivr.net/npm/@pipecat-ai/small-webrtc-transport@1.11.1/+esm";
 
-    const statusEl = document.getElementById("status");
-    const logEl = document.getElementById("log");
-    const connectBtn = document.getElementById("connectBtn");
-    const disconnectBtn = document.getElementById("disconnectBtn");
+    const el = (id) => document.getElementById(id);
+    const phoneFrame = el("phoneFrame");
+    const statusClock = el("statusClock");
+    const callerVerify = el("callerVerify");
+    const callLiveDuration = el("callLiveDuration");
+    const endedLine = el("endedLine");
+    const quickActions = el("quickActions");
+    const ringButtons = el("ringButtons");
+    const endButtons = el("endButtons");
+    const acceptBtn = el("acceptBtn");
+    const declineBtn = el("declineBtn");
+    const endBtn = el("endBtn");
+    const splitBtn = el("splitBtn");
+    const summaryStrip = el("summaryStrip");
+    const liveNote = el("liveNote");
+    const feedEl = el("feed");
+    const splitEl = el("split");
+    const colCustomerEl = el("colCustomer");
+    const colBotEl = el("colBot");
+    const errorBanner = el("errorBanner");
 
-    function log(cls, text) {
-      const line = document.createElement("div");
-      line.className = cls;
-      line.textContent = text;
-      logEl.appendChild(line);
-      logEl.scrollTop = logEl.scrollHeight;
+    const WAVEFORM_ICON = '<svg viewBox="0 0 24 24" fill="none"><rect x="1.5" y="9" width="2.6" height="6" rx="1.3" fill="currentColor"/><rect x="7" y="5" width="2.6" height="14" rx="1.3" fill="currentColor"/><rect x="12.5" y="2" width="2.6" height="20" rx="1.3" fill="currentColor"/><rect x="18" y="6" width="2.6" height="12" rx="1.3" fill="currentColor"/></svg>';
+
+    // --- iOS-style status clock (real time, no AM/PM, like the status bar) ---
+    function updateClock() {
+      let h = new Date().getHours() % 12;
+      if (h === 0) h = 12;
+      const m = String(new Date().getMinutes()).padStart(2, "0");
+      statusClock.textContent = `${h}:${m}`;
+    }
+    updateClock();
+    setInterval(updateClock, 15000);
+
+    function setCallScreenState(state) {
+      if (phoneFrame.dataset.state === state) return;
+      phoneFrame.dataset.state = state;
+
+      const ringing = state === "idle" || state === "ended";
+      const inCall = !ringing;
+
+      ringButtons.hidden = !ringing;
+      endButtons.hidden = ringing;
+      quickActions.hidden = !ringing;
+      callerVerify.hidden = inCall || state === "ended";
+      callLiveDuration.hidden = !inCall;
+      endedLine.hidden = state !== "ended";
+
+      if (state === "connecting") callLiveDuration.textContent = "Calling…";
+    }
+    declineBtn.addEventListener("click", () => {
+      declineBtn.classList.add("shake");
+      setTimeout(() => declineBtn.classList.remove("shake"), 320);
+    });
+
+    // --- outcome labels ---
+    const OUTCOME_LABELS = {
+      promise_to_pay: "Promise to pay",
+      already_paid: "Already paid",
+      callback_request: "Callback requested",
+      dispute_transfer: "Disputed / transferred",
+      no_outcome: "No outcome",
+    };
+    function outcomeDetail(outcome) {
+      if (!outcome) return "";
+      switch (outcome.type) {
+        case "promise_to_pay": return [outcome.amount ? `₹${outcome.amount}` : null, outcome.date ? `by ${outcome.date}` : null].filter(Boolean).join(" ");
+        case "already_paid": return [outcome.mode, outcome.date].filter(Boolean).join(" · ");
+        case "callback_request": return outcome.requested_time ? `requested ${outcome.requested_time}` : "";
+        case "dispute_transfer": return outcome.reason || outcome.category || "";
+        case "no_outcome": return outcome.reason || "";
+        default: return "";
+      }
+    }
+    function isConfirmed(outcome) {
+      return !!outcome && outcome.type && outcome.type !== "no_outcome";
     }
 
-    let lastBotLine = "";
+    // --- sentiment heuristic ---
+    // Keyword-based only, computed entirely client-side from the visible transcript.
+    // Not model-graded. See Progress Tracker.md / Execution Plan.md for the real
+    // fix (route the transcript through an LLM judge, same pattern as evals/judge.py).
+    function computeSentimentHeuristic(transcript) {
+      const customerText = transcript.filter((m) => m.role === "user").map((m) => m.text).join(" ").toLowerCase();
+      if (!customerText.trim()) return { label: "No data", note: "Customer did not speak", tone: "neutral" };
+      const distress = ["hospital", "medical", "emergency", "lost my job", "job loss", "passed away", "surgery", "accident", "funeral"];
+      const frustration = ["stupid", "ridiculous", "harass", "sick of", "stop calling", "angry", "furious", "scam", "useless", "worst", "annoyed", "frustrat", "rude"];
+      const cooperative = ["sure", "okay", "thank you", "thanks", "understand", "sorry", "will pay", "i will", "no problem", "alright", "definitely", "of course"];
+      const hit = (list) => list.some((w) => customerText.includes(w));
+      const exclaimCount = (customerText.match(/!/g) || []).length;
+      if (hit(distress)) return { label: "Distressed", note: "Hardship language detected", tone: "distressed" };
+      if (hit(frustration) || exclaimCount >= 3) return { label: "Frustrated", note: "Negative or escalated language", tone: "frustrated" };
+      if (hit(cooperative)) return { label: "Cooperative", note: "Polite, agreeable language", tone: "cooperative" };
+      return { label: "Neutral", note: "No strong signal either way", tone: "neutral" };
+    }
+    const SENTIMENT_CLASS = { cooperative: "ok", distressed: "no", frustrated: "no", neutral: "" };
+
+    function fmtTime(ms) {
+      const total = Math.max(0, Math.floor(ms / 1000));
+      const m = String(Math.floor(total / 60)).padStart(2, "0");
+      const s = String(total % 60).padStart(2, "0");
+      return `${m}:${s}`;
+    }
+    function fmtClock(ms) {
+      return new Date(ms).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+    }
+    function newId() {
+      return (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+    }
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    // --- call record ---
+    let currentCall = null; // the call in progress (or just-ended, before being superseded by a new one)
+    let splitMode = false;
+    let pendingUser = null;
+    let pendingBot = null;
+    let callStartedAt = null;
+    let timerInterval = null;
+    let liveOutcome = null;
+    let connected = false;
+
+    function elapsed() { return callStartedAt ? Date.now() - callStartedAt : 0; }
+
+    function startTimer() {
+      callStartedAt = Date.now();
+      timerInterval = setInterval(() => {
+        const t = fmtTime(elapsed());
+        callLiveDuration.textContent = t;
+      }, 250);
+    }
+    function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+
+    // --- transcript rendering ---
+    function messageHtml(m) {
+      const roleLabel = m.role === "user" ? "Customer" : "Mumbai Bank bot";
+      return `<div class="msg ${m.role}${m.pending ? " pending" : ""}">
+        <div class="role">${roleLabel} <span class="t">${fmtTime(m.t)}</span></div>
+        <div class="text">${escapeHtml(m.text || "")}</div>
+      </div>`;
+    }
+    const EMPTY_STATE_HTML = `
+      <div class="empty-state">
+        <div class="empty-icon">${WAVEFORM_ICON}</div>
+        <div class="empty-title">Your conversation will appear here</div>
+        <div class="empty-sub">Start a call to see the transcript in real time.</div>
+      </div>`;
+
+    function renderTranscript() {
+      const messages = currentCall ? currentCall.transcript : [];
+
+      if (messages.length === 0) {
+        feedEl.innerHTML = EMPTY_STATE_HTML;
+        colCustomerEl.innerHTML = "";
+        colBotEl.innerHTML = "";
+      } else if (splitMode) {
+        colCustomerEl.innerHTML = messages.filter((m) => m.role === "user").map(messageHtml).join("");
+        colBotEl.innerHTML = messages.filter((m) => m.role === "bot").map(messageHtml).join("");
+        colCustomerEl.scrollTop = colCustomerEl.scrollHeight;
+        colBotEl.scrollTop = colBotEl.scrollHeight;
+      } else {
+        feedEl.innerHTML = messages.map(messageHtml).join("");
+        feedEl.scrollTop = feedEl.scrollHeight;
+      }
+      feedEl.hidden = splitMode;
+      splitEl.hidden = !splitMode;
+    }
+
+    function renderSummary() {
+      const call = currentCall;
+      const live = !!call && !call.endedAt;
+
+      if (!call || live) {
+        summaryStrip.hidden = true;
+        liveNote.hidden = !call;
+        return;
+      }
+
+      liveNote.hidden = true;
+      summaryStrip.hidden = false;
+      const confirmed = isConfirmed(call.outcome);
+      const outcomeLabel = call.outcome ? (OUTCOME_LABELS[call.outcome.type] ?? call.outcome.type) : "Unknown";
+      const detail = outcomeDetail(call.outcome);
+      const sentiment = call.sentiment ?? { label: "—", note: "", tone: "neutral" };
+      const sentimentClass = SENTIMENT_CLASS[sentiment.tone] ?? "";
+      const customerTurns = call.transcript.filter((m) => m.role === "user").length;
+      const botTurns = call.transcript.filter((m) => m.role === "bot").length;
+
+      summaryStrip.innerHTML = `
+        <div class="metric"><div class="k">Duration</div><div class="v">${fmtTime(call.durationMs ?? 0)}</div></div>
+        <div class="metric"><div class="k">Confirmation</div><div class="v ${confirmed ? "ok" : "no"}">${confirmed ? "Confirmed" : "Not confirmed"}</div><div class="d">${outcomeLabel}${detail ? " · " + escapeHtml(detail) : ""}</div></div>
+        <div class="metric"><div class="k">Sentiment<span class="heuristic-tag" title="Keyword-based heuristic, not model-graded. See Progress Tracker.md.">heuristic</span></div><div class="v ${sentimentClass}">${sentiment.label}</div><div class="d">${sentiment.note}</div></div>
+        <div class="metric"><div class="k">Turns</div><div class="v">${customerTurns + botTurns}</div><div class="d">${customerTurns} customer · ${botTurns} bot</div></div>
+      `;
+    }
+
+    function renderAll() { renderSummary(); renderTranscript(); }
+
+    splitBtn.addEventListener("click", () => {
+      splitMode = !splitMode;
+      splitBtn.setAttribute("aria-pressed", String(splitMode));
+      renderTranscript();
+    });
+
+    function showError(text) { errorBanner.textContent = text; errorBanner.classList.add("show"); }
+    function clearError() { errorBanner.classList.remove("show"); errorBanner.textContent = ""; }
+
+    // --- audio-reactive level, drives the blurred background blobs ---
+    class AudioLevelMeter {
+      constructor(stream) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new Ctx();
+        this.analyser = this.ctx.createAnalyser();
+        this.analyser.fftSize = 512;
+        this.analyser.smoothingTimeConstant = 0.6;
+        this.ctx.createMediaStreamSource(stream).connect(this.analyser);
+        this.data = new Uint8Array(this.analyser.frequencyBinCount);
+      }
+      level() {
+        this.analyser.getByteTimeDomainData(this.data);
+        let sumSquares = 0;
+        for (let i = 0; i < this.data.length; i++) {
+          const n = (this.data[i] - 128) / 128;
+          sumSquares += n * n;
+        }
+        return Math.min(1, Math.sqrt(sumSquares / this.data.length) * 4);
+      }
+      close() { this.ctx.close().catch(() => {}); }
+    }
+
+    let localMeter = null;
+    let remoteMeter = null;
+    let activeChannel = null; // "local" | "remote" | null
+
+    (function levelLoop() {
+      let level = 0;
+      if (activeChannel === "local" && localMeter) level = localMeter.level();
+      else if (activeChannel === "remote" && remoteMeter) level = remoteMeter.level();
+      phoneFrame.style.setProperty("--level", level.toFixed(3));
+      requestAnimationFrame(levelLoop);
+    })();
+
     let audioEl = document.querySelector("audio#botAudio");
     if (!audioEl) {
       audioEl = document.createElement("audio");
       audioEl.id = "botAudio";
       audioEl.autoplay = true;
+      audioEl.style.display = "none";
       document.body.appendChild(audioEl);
     }
 
@@ -52,47 +679,127 @@
       enableCam: false,
       callbacks: {
         onConnected: () => {
-          statusEl.textContent = "connected";
-          connectBtn.disabled = true;
-          disconnectBtn.disabled = false;
+          connected = true;
+          clearError();
+          startTimer();
+          setCallScreenState("connected-idle");
         },
         onDisconnected: () => {
-          statusEl.textContent = "disconnected";
-          connectBtn.disabled = false;
-          disconnectBtn.disabled = true;
-        },
-        onBotStartedSpeaking: () => log("bot", "[bot speaking...]"),
-        onTrackStarted: (track, participant) => {
-          if (!participant?.local && track.kind === "audio") {
-            audioEl.srcObject = new MediaStream([track]);
+          connected = false;
+          stopTimer();
+          activeChannel = null;
+          localMeter?.close(); localMeter = null;
+          remoteMeter?.close(); remoteMeter = null;
+          if (pendingUser) { pendingUser.pending = false; pendingUser = null; }
+          if (pendingBot) { pendingBot.pending = false; pendingBot = null; }
+
+          if (currentCall) {
+            currentCall.durationMs = elapsed();
+            currentCall.endedAt = Date.now();
+            // No call-outcome server message ever arrived before disconnect:
+            // same semantics as bot/main.py's own forced no_outcome fallback
+            // on an unrecorded hangup (see on_client_disconnected there).
+            currentCall.outcome = liveOutcome ?? { type: "no_outcome", reason: "call ended without a recorded outcome" };
+            currentCall.sentiment = computeSentimentHeuristic(currentCall.transcript);
           }
+
+          setCallScreenState("ended");
+          endedLine.textContent = `Call ended · ${fmtTime(currentCall ? currentCall.durationMs : 0)}`;
+          renderAll();
+        },
+        onUserStartedSpeaking: () => {
+          activeChannel = "local";
+          setCallScreenState("listening");
+          if (!pendingUser && currentCall) {
+            pendingUser = { role: "user", text: "", t: elapsed(), pending: true };
+            currentCall.transcript.push(pendingUser);
+          }
+          renderTranscript();
+        },
+        onUserStoppedSpeaking: () => {
+          activeChannel = null;
+          if (connected) setCallScreenState("connected-idle");
         },
         onUserInput: (data) => {
-          if (data.final) log("user", "You: " + data.text);
+          if (!currentCall) return;
+          if (!pendingUser) {
+            pendingUser = { role: "user", text: "", t: elapsed(), pending: true };
+            currentCall.transcript.push(pendingUser);
+          }
+          pendingUser.text = data.text ?? pendingUser.text;
+          if (data.final) { pendingUser.pending = false; pendingUser = null; }
+          renderTranscript();
+        },
+        onBotStartedSpeaking: () => {
+          activeChannel = "remote";
+          setCallScreenState("bot-speaking");
+          if (!pendingBot && currentCall) {
+            pendingBot = { role: "bot", text: "", t: elapsed(), pending: true };
+            currentCall.transcript.push(pendingBot);
+          }
+          renderTranscript();
+        },
+        onBotStoppedSpeaking: () => {
+          activeChannel = null;
+          if (pendingBot) { pendingBot.pending = false; pendingBot = null; }
+          if (connected) setCallScreenState("connected-idle");
+          renderTranscript();
         },
         onBotOutput: (data) => {
-          if (data.text && data.text !== lastBotLine) {
-            lastBotLine = data.text;
-            log("bot", "Bot: " + data.text);
+          if (!data.text || !currentCall) return;
+          if (!pendingBot) {
+            pendingBot = { role: "bot", text: "", t: elapsed(), pending: true };
+            currentCall.transcript.push(pendingBot);
+          }
+          if (data.text !== pendingBot.text) { pendingBot.text = data.text; renderTranscript(); }
+        },
+        onServerMessage: (data) => {
+          // Populated once bot/main.py's record_outcome() sends it. Older
+          // server builds never send this, in which case onDisconnected's
+          // no_outcome fallback above covers it.
+          if (data?.type === "call-outcome") liveOutcome = data.outcome;
+        },
+        onTrackStarted: (track, participant) => {
+          if (track.kind !== "audio") return;
+          const stream = new MediaStream([track]);
+          if (participant?.local) {
+            localMeter?.close();
+            localMeter = new AudioLevelMeter(stream);
+          } else {
+            audioEl.srcObject = stream;
+            remoteMeter?.close();
+            remoteMeter = new AudioLevelMeter(stream);
           }
         },
-        onError: (err) => log("bot", "[error] " + JSON.stringify(err)),
+        onError: (err) => showError("Connection error: " + JSON.stringify(err)),
       },
     });
 
-    connectBtn.addEventListener("click", async () => {
-      statusEl.textContent = "connecting...";
+    acceptBtn.addEventListener("click", async () => {
+      clearError();
+      currentCall = { id: newId(), startedAt: Date.now(), transcript: [], outcome: null, sentiment: null, durationMs: 0, endedAt: null };
+      liveOutcome = null;
+      pendingUser = null;
+      pendingBot = null;
+      splitMode = false;
+      splitBtn.setAttribute("aria-pressed", "false");
+      renderAll();
+      setCallScreenState("connecting");
       try {
         await client.connect({ webrtcRequestParams: { endpoint: "/api/offer" } });
       } catch (e) {
-        statusEl.textContent = "connection failed";
-        log("bot", "[connect failed] " + e);
+        setCallScreenState("idle");
+        showError("Could not connect: " + e);
       }
     });
 
-    disconnectBtn.addEventListener("click", async () => {
+    endBtn.addEventListener("click", async () => {
+      endBtn.disabled = true;
       await client.disconnect();
+      endBtn.disabled = false;
     });
+
+    renderAll();
   </script>
 </body>
 </html>
