@@ -41,7 +41,7 @@ from pipecat.services.openai.tts import OpenAITTSService
 from pipecat.transports.base_transport import BaseTransport, TransportParams
 from pipecat.workers.runner import WorkerRunner
 
-from bot.prompts import v1, v2, v3
+from bot.prompting import build_developer_message, build_system_prompt
 from bot.tools import TOOLS_BY_VERSION
 from bot.webhook import post_outcome
 
@@ -51,27 +51,6 @@ PROMPT_VERSION = os.getenv("PROMPT_VERSION", "v1")
 CUSTOMER_ID = os.getenv("CUSTOMER_ID", "MB-0007")
 
 CUSTOMERS = json.loads((Path(__file__).parent / "fixtures" / "customers.json").read_text())
-PROMPTS = {"v1": v1.PROMPT, "v2": v2.PROMPT, "v3": v3.PROMPT}
-
-
-def build_system_prompt(version: str, customer: dict | None) -> str:
-    """v1 is used exactly as given — no customer facts injected, since the
-    brief's prompt assumes the model 'knows everything' without being told
-    anything. v2/v3 fill in the <customer_name> placeholder."""
-    prompt = PROMPTS[version]
-    if version == "v1" or customer is None:
-        return prompt
-    return prompt.replace("<customer_name>", customer["customer_name"])
-
-
-def build_developer_message(version: str, customer: dict | None) -> str | None:
-    if version == "v1" or customer is None:
-        return None
-    return (
-        f"Minimum amount due: Rs {customer['min_due']}. Due date: {customer['due_date']}. "
-        "Do not state the total outstanding balance unless the customer has passed OTP "
-        "verification in this call."
-    )
 
 
 async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> None:
