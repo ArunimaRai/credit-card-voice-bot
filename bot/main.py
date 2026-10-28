@@ -141,16 +141,13 @@ CUSTOMER_ID = os.getenv("CUSTOMER_ID", "MB-0007")
 
 CUSTOMERS = json.loads((Path(__file__).parent / "fixtures" / "customers.json").read_text())
 
+# Chosen by ear on 2026-10-28 from four OpenAI female voices: "sage" with
+# short, gentle instructions. A longer list of accent rules made "coral"
+# sound stern. OpenAI has no real Indian-accent voice; the console says so.
 TTS_INSTRUCTIONS = (
-    "Voice: a young Indian woman named Shreya. "
-    "Accent: a natural Indian English accent, like a young professional from Mumbai working "
-    "at a bank call centre. Not exaggerated, not American, not British. "
-    "Tone: warm, polite, relaxed and friendly, like a real person on a phone call, not a "
-    "recorded announcement. "
-    "Pacing: conversational, with small natural pauses around fillers like 'okay', 'actually' "
-    "and 'just'. Slightly slower when saying amounts and dates. "
-    "Pronunciation: say rupee amounts the Indian way, e.g. 'eighteen thousand four hundred "
-    "twenty rupees'."
+    "Speak as a friendly young woman from India, with a soft Indian English accent. "
+    "Gentle, calm and smiling, like you are helping a friend. Never stern, never urgent. "
+    "Relaxed pace with small natural pauses."
 )
 
 RECORDINGS_DIR =Path(__file__).resolve().parent.parent / "recordings" / "audio"
@@ -185,7 +182,7 @@ async def run_bot(transport: BaseTransport, runner_args: RunnerArguments) -> Non
         api_key=os.getenv("OPENAI_API_KEY"),
         settings=OpenAITTSService.Settings(
             model="gpt-4o-mini-tts",
-            voice=os.getenv("OPENAI_VOICE_ID", "coral"),
+            voice=os.getenv("OPENAI_VOICE_ID", "sage"),
             # gpt-4o-mini-tts takes acting instructions; the voice IDs alone
             # are all American-sounding.
             instructions=TTS_INSTRUCTIONS,

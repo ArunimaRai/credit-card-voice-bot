@@ -56,6 +56,23 @@ dispute dot, the connecting dot).
 - Used by the follow-up row `.an-follow`. Its "no follow-up" variant is flat `--surface-2`.
 - Use at most one per card.
 
+### Gap note (walkthrough pop-up)
+A small card that points out a place where the demo knowingly falls short of production,
+shown at the moment the viewer runs into it, so the gap is ours to name before they notice it.
+- Fixed to the bottom-right corner, over the transcript side so it never covers the call
+  button (24px in, 16px below 860px), `min(360px, 100vw - 32px)` wide.
+- Orb wash on an opaque `--surface` base (it floats over content), `--orb-line` border, `--card-shadow` plus `--shadow-md`, radius 20px. Enters with `riseIn`.
+- An uppercase "Demo note" label in `--accent-700` with an `--accent-500` dot, 14px body text,
+  a "Known gap n of m" step in `--ink-3`, and a compact dark-pill **Got it** button.
+- It never blocks the call: no backdrop, and the call stays usable underneath.
+- Each note is shown once per page load. Several queue, one at a time.
+- Add a gap by adding an entry to `GAP_NOTES` in `client/index.html` and calling
+  `showGapNote(key)` where it happens. Keep the copy to two plain sentences.
+
+| Key | Shown when | Says |
+| --- | --- | --- |
+| `accent` | Shreya first speaks on a call | We'd have liked an Indian accent; the demo uses OpenAI's voice for simplicity, which doesn't support one. |
+
 **Do not** raise the wash alphas above the token values, add `inset` shadows, or stack
 `linear-gradient` highlights on top. If a surface needs more emphasis, use a border or
 text weight instead.
