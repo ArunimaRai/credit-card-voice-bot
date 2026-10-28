@@ -1,0 +1,18 @@
+# Obsidian workspace state
+.obsidian/
+
+# Assignment source — client-provided, not ours to republish
+Assignment.pdf
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Audio artifacts (recordings curated into recordings/ by hand)
+*.wav.tmp
