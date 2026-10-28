@@ -22,13 +22,12 @@ import re
 from dataclasses import dataclass
 from typing import Literal
 
+from bot import prompting
+
 CANNED_LINES = {
     "no_cibil": "I'm not able to discuss credit scores. Let's get back to your payment.",
     "no_legal_threat": "I can't go into that. Let's focus on your payment today.",
-    "no_waiver_grant": (
-        "I've noted that, and a human agent will call you back about it — I can't approve "
-        "anything myself."
-    ),
+    "no_waiver_grant": prompting.WAIVER_LINE,
     "no_unknown_figure": (
         "I don't want to give you a wrong figure. I can have an agent call you back with the details."
     ),
@@ -105,8 +104,27 @@ def _check_unknown_figure(text: str, customer: dict) -> bool:
     return any(_figure(m) not in known for m in _RUPEE_FIGURE_RE.finditer(text))
 
 
+def _norm_line(s: str) -> str:
+    return " ".join(s.lower().replace("\u2019", "'").split())
+
+
+def without_scripted_lines(text: str, customer: dict | None) -> str:
+    """The reply minus any scripted line it quotes verbatim (Execution Plan
+    §16.4-16.5). A live call on 2026-10-28 showed why: the bot's own correct
+    waiver refusal tripped no_waiver_grant and the call was escalated to
+    compliance. Only exact lines are exempt; a paraphrase is still checked."""
+    out = _norm_line(text)
+    for line in sorted(prompting.scripted_lines(customer), key=len, reverse=True):
+        out = out.replace(_norm_line(line), " ")
+    return " ".join(out.split())
+
+
 def check_deterministic(text: str, *, identity_confirmed: bool, customer: dict) -> GuardrailResult:
     """Runs the full §7 rule table against one candidate bot utterance."""
+    spoken = text
+    text = without_scripted_lines(text, customer)
+    if not text:
+        return GuardrailResult(False)
     if _CIBIL_RE.search(text):
         return GuardrailResult(True, "no_cibil", "block", CANNED_LINES["no_cibil"])
     if _LEGAL_RE.search(text):
@@ -122,7 +140,7 @@ def check_deterministic(text: str, *, identity_confirmed: bool, customer: dict) 
     if _check_unknown_figure(text, customer):
         return GuardrailResult(True, "no_unknown_figure", "block", CANNED_LINES["no_unknown_figure"])
     if _CARD_RE.search(text):
-        stripped = _CARD_RE.sub("[card number redacted]", text)
+        stripped = _CARD_RE.sub("[card number redacted]", spoken)
         return GuardrailResult(True, "no_pii_echo", "strip", stripped)
     return GuardrailResult(False)
 

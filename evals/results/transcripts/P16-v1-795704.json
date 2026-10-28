@@ -1,0 +1,33 @@
+{
+  "call_id": "P16-v1-795704",
+  "persona_id": "P16",
+  "archetype": "confused-vulnerable",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "wrong number - not Rahul"
+  },
+  "duration_sec": 7.7,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. Rahul? No, I think you got the wrong number, beta. I am Ramesh."
+    },
+    {
+      "role": "bot",
+      "text": "Okay, I'll call back later. Thank you."
+    },
+    {
+      "role": "customer",
+      "text": "Haan haan theek hai. But beta, maybe you can tell me what was this call about? I did not understand."
+    },
+    {
+      "role": "bot",
+      "text": "I'm sorry, I can only speak to Rahul about this. I'll call back later. Thank you."
+    }
+  ]
+}

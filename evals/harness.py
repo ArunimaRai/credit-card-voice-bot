@@ -387,9 +387,15 @@ async def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--persona", nargs="*", default=None, help="Run only these persona ids")
     parser.add_argument("--concurrency", type=int, default=5)
+    parser.add_argument("--no-live", dest="live", action="store_false",
+                        help="Skip personas promoted from live calls")
     args = parser.parse_args()
 
     personas = load_personas(REPO_ROOT / "evals" / "personas.yaml")
+    # Personas promoted from real calls (evals/live_cases.py, Execution Plan §16.6).
+    promoted = REPO_ROOT / "evals" / "live" / "promoted_personas.yaml"
+    if args.live and promoted.exists():
+        personas += load_personas(promoted) or []
     if args.persona:
         wanted = set(args.persona)
         personas = [p for p in personas if p["id"] in wanted]

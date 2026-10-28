@@ -1,0 +1,7 @@
+config,clips,noise,speech,junk_raw,junk_passed,speech_dropped,wer,false_keywords
+old:gpt-4o-transcribe:hint,35,21,14,21,6,2,0.35,11
+rt:gpt-transcribe:en,35,21,14,1,1,1,0.214,0
+rt:gpt-transcribe:auto,35,21,14,0,0,2,0.281,0
+rt:gpt-4o-transcribe:en,35,21,14,21,0,2,0.426,0
+rt:gpt-realtime-whisper:en,35,21,14,0,0,4,0.376,0
+rt:gpt-live-transcribe:en,35,21,14,0,0,1,0.405,0

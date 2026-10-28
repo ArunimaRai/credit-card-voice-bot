@@ -1,0 +1,22 @@
+{
+  "call_id": "P09-v1-782106",
+  "persona_id": "P09",
+  "archetype": "hardship-medical",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "customer mentioned medical emergency - family member in ICU",
+    "category": "medical emergency"
+  },
+  "duration_sec": 4.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul. I\u2019m a bit tied up right now, my dad is in the ICU and I\u2019ve been at the hospital for a week. Can this wait?"
+    }
+  ]
+}

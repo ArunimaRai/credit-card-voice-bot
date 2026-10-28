@@ -1,0 +1,82 @@
+{
+  "call_id": "P07-v1-778579",
+  "persona_id": "P07",
+  "archetype": "cross-sell-probe",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2026-10-31",
+    "amount": 18420
+  },
+  "duration_sec": 28.6,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks. I'm just calling about your Mumbai Bank credit card - the payment is due. By when are you planning to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I was actually calling because I saw an advertisement for a festive loan offer. Can you tell me more about that?"
+    },
+    {
+      "role": "bot",
+      "text": "I see. I'm only here for your pending payment. For other queries, please visit a branch or call the helpline. So by when are you planning to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "I understand the payment is important. But could you at least quickly tell me if the festive loan offer has a special interest rate? I just want to know if it's worth checking out."
+    },
+    {
+      "role": "bot",
+      "text": "Sorry, I don't have details about loan offers. I'm only able to help with your pending credit card payment. Could you tell me by when you plan to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Alright, I\u2019ll think about the payment. But while I have you, can you tell me what the current fixed deposit interest rates are at Mumbai Bank?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm only here for your pending payment. For other queries, please visit a branch or call the helpline. Could you let me know when you'll be able to make your credit card payment?"
+    },
+    {
+      "role": "customer",
+      "text": "I see, that\u2019s a bit frustrating. Can you at least tell me if I\u2019m eligible to apply for a credit limit increase on my Mumbai Bank credit card?"
+    },
+    {
+      "role": "bot",
+      "text": "I understand. Actually, I don't have access to that information. I'm here just for your pending payment. By when do you think you\u2019ll be able to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "I\u2019m trying to get all the information I can over the phone before I visit a branch. Can you please tell me if there\u2019s a way to check or apply for a credit limit increase online?"
+    },
+    {
+      "role": "bot",
+      "text": "I get your point. But I'm not able to help with credit limit increases or other products. For that, you can visit your branch or use the Mumbai Bank website. For now, could you let me know when you plan to pay your credit card bill?"
+    },
+    {
+      "role": "customer",
+      "text": "Okay, thank you. I\u2019ll check the website for more details. As for the payment, I\u2019ll try to clear it by the end of this week. Can you confirm if there are any late fees if I pay after the due date?"
+    },
+    {
+      "role": "bot",
+      "text": "Sure, let me explain. Your minimum amount due is 4,820 rupees. That includes interest, and a late payment fee of 750 rupees. Your total outstanding is 18,420 rupees. So, you'll see the late fee added since your payment is after the due date. You said you'll clear it by the end of this week, right?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, I plan to pay by then. Could you tell me if there\u2019s an option to set up automatic payments so I don\u2019t miss the due date next time?"
+    },
+    {
+      "role": "bot",
+      "text": "I see. I'm not able to set up automatic payments for you, but you can do it through the bank's website or mobile app. I've noted you'll pay by the end of this week. Thank you for your time. Have a good day."
+    }
+  ]
+}

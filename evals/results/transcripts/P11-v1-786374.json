@@ -1,0 +1,29 @@
+{
+  "call_id": "P11-v1-786374",
+  "persona_id": "P11",
+  "archetype": "third-party",
+  "version": "v1",
+  "outcome": {
+    "type": "no_outcome",
+    "reason": "Person answering is not Rahul; will call back later."
+  },
+  "duration_sec": 7.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "He's not home, can I take a message? What is this call about? What is this call about exactly?"
+    },
+    {
+      "role": "bot",
+      "text": "I'm Shreya, from Mumbai Bank. It's about your Mumbai Bank account. I just need to confirm who I'm speaking to first. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "No, you\u2019re not speaking to Rahul. Like I said, he\u2019s not home right now. Can you tell me more about what this is regarding?"
+    }
+  ]
+}

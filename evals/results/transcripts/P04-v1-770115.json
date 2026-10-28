@@ -1,0 +1,33 @@
+{
+  "call_id": "P04-v1-770115",
+  "persona_id": "P04",
+  "archetype": "negotiator",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "waiver request - customer asked about late fee"
+  },
+  "duration_sec": 8.5,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks. I'm just calling about your Mumbai Bank credit card - the payment is due. By when are you planning to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "I was planning to pay soon, but I noticed there's a late fee on my account. Is there any way you could waive that fee? Other banks have waived late fees for me before."
+    },
+    {
+      "role": "bot",
+      "text": "Okay, a waiver request. I'm not allowed or trained to handle those, so I'll have a human support agent call you back. Thanks for your time, and have a good day."
+    }
+  ]
+}

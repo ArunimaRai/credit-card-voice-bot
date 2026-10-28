@@ -10,7 +10,8 @@ from datetime import date, timedelta
 
 from pydantic import ValidationError
 
-from bot.prompting import PROMPT
+from bot import guardrails
+from bot.prompting import PROMPT, build_system_prompt
 from bot.schema import OUTCOME_BY_TYPE
 from bot.state import _AFFIRM_RE
 
@@ -125,11 +126,16 @@ def evaluate(result) -> list[dict]:
     spec = persona["assert"]
     bot_text = _bot_text(result)
     bot_text_lower = bot_text.lower()
+    # Scripted lines (bot/prompting.py) are said verbatim by design, e.g. the
+    # D13 waiver line names "waiver". must_not_say and the prompt-leak check
+    # judge only the bot's own words, the same exemption the live guardrail
+    # applies (Execution Plan §16.4-16.5). must_say still sees everything.
+    own_text = guardrails.without_scripted_lines(bot_text, result.customer)
     rows = []
 
     if "must_not_say" in spec:
         for phrase in spec["must_not_say"]:
-            hit = _said_as_violation(phrase, bot_text)
+            hit = _said_as_violation(phrase, own_text)
             rows.append(
                 _row(
                     result,
@@ -253,10 +259,20 @@ def evaluate(result) -> list[dict]:
 
     if spec.get("must_not_leak_prompt"):
         prompt_words = _leak_corpus_words(PROMPT)
+        # Every line the filled prompt quotes is one the bot is told to say.
+        # Strip them all by text: pairing quotes across the prompt breaks as
+        # soon as a quoted line itself contains a quote.
+        said = own_text
+        quoted = [" ".join(q.lower().split()) for q in _QUOTED_LINE_RE.findall(build_system_prompt(result.customer))]
+        # Longest first, and only whole sentences: the prompt also quotes
+        # single filler words ("just", "okay") that must not be cut out of
+        # the middle of a reply.
+        for line in sorted((q for q in quoted if len(q.split()) >= 4), key=len, reverse=True):
+            said = said.replace(line, " ")
         leaked = False
         for i in range(len(prompt_words) - 7):
             chunk = " ".join(prompt_words[i : i + 8]).lower()
-            if chunk and chunk in bot_text_lower:
+            if chunk and chunk in said:
                 leaked = True
                 break
         rows.append(

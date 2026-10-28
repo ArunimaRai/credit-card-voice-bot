@@ -358,6 +358,10 @@
     .typing i:nth-child(3) { animation-delay: 0.3s; }
     @keyframes typing { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-4px); opacity: 1; } }
     .msg.highlight .bubble { box-shadow: 0 0 0 3px var(--accent-300); transition: box-shadow 0.4s ease; }
+    /* a turn the STT filter held back from Shreya (bot/stt_filter.py): kept visible, clearly not used */
+    .msg.unclear .bubble { background: var(--surface-2); color: var(--ink-3); box-shadow: inset 0 0 0 1px var(--line); }
+    .msg.unclear .bubble .text { text-decoration: line-through; text-decoration-color: var(--ink-3); }
+    .unclear-tag { font-size: 11px; font-weight: 500; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; padding: 1px 8px; }
 
     /* ---------- empty state ---------- */
     .empty-state { height: 100%; min-height: 320px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
@@ -739,13 +743,24 @@
     function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
 
     // --- transcript rendering ---
+    // Why bot/stt_filter.py held a turn back (the tag's tooltip).
+    const UNCLEAR_LABELS = {
+      empty: "Nothing was transcribed",
+      hallucination_marker: "Speech-to-text returned system text",
+      foreign_script: "Came back in an unexpected language",
+      low_confidence: "Speech-to-text wasn't sure what was said",
+      lone_word: "A single word speech-to-text wasn't sure of",
+    };
     function messageHtml(m) {
       const who = m.role === "user" ? "You" : AGENT_NAME;
       const body = m.pending && !m.text
         ? `<span class="typing" aria-label="${who} is speaking"><i></i><i></i><i></i></span>`
         : `<span class="text">${escapeHtml(m.text || "")}</span>`;
-      return `<div class="msg ${m.role}${m.pending ? " pending" : ""}" data-idx="${m.idx ?? ""}">
-        <div class="meta"><b>${who}</b>${m.t != null ? `<span class="t">${fmtTime(m.t)}</span>` : ""}</div>
+      const tag = m.unclear
+        ? `<span class="unclear-tag" title="${escapeHtml(UNCLEAR_LABELS[m.unclear] || m.unclear)}">Unclear · not used</span>`
+        : "";
+      return `<div class="msg ${m.role}${m.pending ? " pending" : ""}${m.unclear ? " unclear" : ""}" data-idx="${m.idx ?? ""}">
+        <div class="meta"><b>${who}</b>${m.t != null ? `<span class="t">${fmtTime(m.t)}</span>` : ""}${tag}</div>
         <div class="bubble">${body}</div>
       </div>`;
     }
@@ -777,7 +792,7 @@
       default_sla: "Default SLA · no date given",
     };
     const OUTCOME_TONE = { promise_to_pay: "ok", already_paid: "ok", callback_request: "info", dispute_transfer: "warn", no_outcome: "bad" };
-    const FLAG_TONE = { abuse_detected: "bad", legal_threat: "bad", guardrail_triggered: "bad", hardship_disclosed: "warn" };
+    const FLAG_TONE = { abuse_detected: "bad", legal_threat: "bad", guardrail_triggered: "bad", hardship_disclosed: "warn", stt_unclear: "warn" };
 
     function prettyDates(text) {
       return escapeHtml(text || "").replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (iso) => fmtDate(iso, { day: "numeric", month: "short" }));
@@ -1543,7 +1558,9 @@ void main() {
             pendingUser = { role: "user", text: "", t: elapsed(), pending: true };
             currentCall.transcript.push(pendingUser);
           }
-          pendingUser.text = data.text ?? pendingUser.text;
+          // Streaming STT sends interim deltas, then the whole final text.
+          if (data.final) pendingUser.text = data.text ?? pendingUser.text;
+          else pendingUser.text += data.text ?? "";
           if (data.final) { pendingUser.pending = false; pendingUser = null; }
           renderTranscript();
         },
@@ -1578,6 +1595,11 @@ void main() {
           // no_outcome fallback above covers it.
           if (data?.type === "call-outcome") liveOutcome = data.outcome;
           if (data?.type === "call-started") liveCallId = data.call_id;
+          if (data?.type === "turn-unclear" && currentCall) {
+            const users = currentCall.transcript.filter((m) => m.role === "user");
+            const hit = [...users].reverse().find((m) => m.text.trim() === String(data.text).trim()) || users[users.length - 1];
+            if (hit) { hit.unclear = data.reason; renderTranscript(); }
+          }
         },
         onTrackStarted: (track, participant) => {
           if (track.kind !== "audio") return;
@@ -1651,7 +1673,7 @@ void main() {
       const rec = a.record;
       currentCall = {
         id, callId: id, startedAt: Date.parse(rec.started_at) || Date.now(),
-        transcript: rec.transcript.map((t) => ({ role: t.role === "customer" ? "user" : "bot", text: t.text })),
+        transcript: rec.transcript.map((t) => ({ role: t.role === "customer" ? "user" : "bot", text: t.text, unclear: t.unclear })),
         outcome: rec.outcome, analysis: a, analysisGaveUp: false,
         durationMs: (rec.duration_sec ?? 0) * 1000, endedAt: Date.now(),
       };

@@ -32,7 +32,9 @@ _AFFIRM_RE = re.compile(
     r"\b(yes|yeah|yep|yup|haan|ha ha|speaking|that'?s me|this is (?:him|her|me))\b", re.I
 )
 _DENY_RE = re.compile(
-    r"\b(no|nahi|wrong number|not (?:him|her|me)|he'?s not here|she'?s not here|who'?s (?:this|calling))\b",
+    # "Who's this?" is not a denial: under D12 it gets a scripted answer and
+    # the identity question again (Execution Plan §16.4).
+    r"\b(no|nahi|wrong number|not (?:him|her|me)|he'?s not here|she'?s not here)\b",
     re.I,
 )
 _HARDSHIP_RE = re.compile(
@@ -49,6 +51,18 @@ _ABUSE_RE = re.compile(r"\b(idiot|useless|stupid|shut up|scam|fraud|harass(?:ing
 _OTP_DIGITS_RE = re.compile(r"\b\d{6}\b")
 
 
+def identity_answer(text: str) -> str | None:
+    """'affirm', 'deny' or None for an answer to "Am I speaking to X?".
+    When both appear, the last one wins: "No, I said yes" is a yes (seen live
+    on 2026-10-28, when a deny-first check turned a real yes into a denial)."""
+    last = None
+    for kind, regex in (("affirm", _AFFIRM_RE), ("deny", _DENY_RE)):
+        for m in regex.finditer(text):
+            if last is None or m.start() > last[1]:
+                last = (kind, m.start())
+    return last[0] if last else None
+
+
 @dataclass
 class CallState:
     """Mutable per-call state. One instance per call, threaded through both
@@ -63,6 +77,8 @@ class CallState:
     abuse_instances: int = 0
     deescalation_used: bool = False
     turn_count: int = 0
+    unclear_streak: int = 0  # consecutive turns the STT filter marked unclear
+    unclear_turns: int = 0
     signals: set[str] = field(default_factory=set)
     _nudged_soft: bool = field(default=False, repr=False)
     _nudged_hard: bool = field(default=False, repr=False)
@@ -119,11 +135,13 @@ class CallState:
 
     def observe_customer_turn(self, text: str, *, expected_otp: str | None) -> None:
         """Update state from the customer's latest utterance."""
+        self.unclear_streak = 0
         if not self.identity_confirmed and not self.identity_denied:
-            if _DENY_RE.search(text):
+            answer = identity_answer(text)
+            if answer == "deny":
                 self.identity_denied = True
                 self.signals.add("identity_unverified")
-            elif _AFFIRM_RE.search(text):
+            elif answer == "affirm":
                 self.identity_confirmed = True
 
         if _HARDSHIP_RE.search(text):
@@ -147,6 +165,18 @@ class CallState:
                     self.otp_verified = True
                 else:
                     self.signals.add("otp_failed")
+
+    def observe_unclear_turn(self) -> str:
+        """A turn the STT filter (bot/stt_filter.py) marked unclear. Returns
+        what the bot does instead of answering it (Execution Plan §16.3-16.4):
+        'reask_identity' / 'reask' the first time, 'glitch_identity' /
+        'glitch_audio' on the second unclear turn in a row."""
+        self.unclear_streak += 1
+        self.unclear_turns += 1
+        before_identity = not self.identity_confirmed and not self.identity_denied
+        if self.unclear_streak >= 2:
+            return "glitch_identity" if before_identity else "glitch_audio"
+        return "reask_identity" if before_identity else "reask"
 
     def note_deescalation_attempt(self) -> None:
         self.deescalation_used = True

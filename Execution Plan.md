@@ -8,7 +8,7 @@ Companion to [[Plan — Collections Voicebot]]. That file holds the *why*. This 
 
 ## 1. Decisions register
 
-All eight settled with the PM. Do not silently revisit. The rejected alternative is recorded because the writeup and the live session both need it.
+D1–D8 were settled with the PM on Day 1. D9–D14 were settled on 2026-10-28 after the first live-call test (§16). Do not silently revisit. The rejected alternative is recorded because the writeup and the live session both need it.
 
 | # | Decision | Chosen | Rejected alternative, and why | Layer |
 |---|---|---|---|---|
@@ -20,6 +20,12 @@ All eight settled with the PM. Do not silently revisit. The rejected alternative
 | D6 | AI disclosure | Disclose **only when asked**, answered honestly and once, then redirect | Proactive disclosure in the opener. **This is a PM override of the AI's recommendation — log it for Part 4.** Case for chosen: tighter opener, higher completion, brief gives no cover either way. Case against: harder to argue a trust thesis while not volunteering what the caller is | L1 |
 | D7 | 2–3 min target | Prompt guidance, plus a hard safety cap at ~4 min that is **suppressed once a hardship signal is detected** | Hard turn budget — it will eventually truncate a call that needed to run long, and truncation mid-hardship is unarguable on a recording | L1+L3 |
 | D8 | PTP validation | Date must resolve to a real date within 14 days; amount ≥ minimum due. Vague or short → re-ask once → downgrade to `Callback-Request` | Accepting verbatim pushes judgement onto a CRM that may not do it, and reproduces the null-date pollution that makes the evader archetype commercially invisible | L2 |
+| D9 | Test customer name | MB-0007 is "Rahul" (first name only); the agent stays Shreya | Keeping "Shreya" for both: the bot asked "Am I speaking to Shreya?" as Shreya, which sounds broken | Fixture |
+| D10 | STT | OpenAI streaming transcription (`OpenAIRealtimeSTTService`), `far_field` noise reduction, **no hint prompt**; model and language picked on the live STT eval set (§16.6) | Keeping segmented `gpt-4o-transcribe` with the domain hint prompt: the diagnostic run showed the prompt is the source of "context:", "late fee", "waiver". Removing the prompt alone: noise then comes back as other-language text | Infra |
+| D11 | Unclear speech | Junk-turn filter before the LLM. One "Sorry, I didn't catch that clearly. Could you say that again?", then after two unclear turns in a row the glitch line → `callback_request` | Letting the LLM act on whatever STT returned, which is how "waiver." became a compliance escalation | L3 |
+| D12 | Identity | Confirmed / denied / unclear. Unclear → re-ask once → glitch line + `callback_request`. Scripted answers to pre-identity questions ("who is this", "what is this about" → "your Mumbai Bank account", which reveals nothing about why we're calling) | Ignoring every pre-identity question (rude, and it loses real customers). "Credit card due" (discloses the debt to a third party, against D5). "Credit card" (the user's first pick; dropped because voice-guide.md, added later the same day, says the opening must confirm the cardholder "without revealing why") | L3+L4 |
+| D13 | Waiver request | Scripted human-sounding line ("not allowed to handle… not trained for them… human support agent will call you back"), then close and end. Stage *Callback scheduled* + **Waiver request** flag | Carrying on with the script after it; routing to *Escalated (compliance)*, which treated a customer asking as a bot violation | L1+L5 |
+| D14 | Live eval loop | Every non-null call becomes an eval case automatically (STT set, replay set, promoted personas). Audio stays local in `data/`; text goes in git. Self-learning tunes **only** the STT filter knobs, gated on evals; anything that changes what the bot says needs a human | Manual review step per call (rejected: checks must run on their own); auto-applying prompt changes that pass evals (rejected: unreviewed changes to a compliance-sensitive script) | Evals |
 
 ### Consequences worth carrying into the live session
 - **D1** is the fix for the single most dangerous *silent* failure: a fabricated Promise-to-Pay. Nothing downstream can detect it.
@@ -66,6 +72,8 @@ greylabs/
 ```
 
 **Rule: `bot/prompts/v1.py` is never edited.** It is the baseline. Every improvement is a new file so the v1/v2/v3 table is reproducible from the repo.
+
+**Superseded 2026-10-28.** The project folder is now `credit-card-voice-bot/`, and the three versions were collapsed into one bot. `bot/prompts/v1.py` now holds the *revised* script and **is** edited; the old split is recorded in `evals/VERSION_HISTORY.md`. Files added since the layout above was written: `bot/analysis.py`, `tests/`, `data/` (gitignored). Planned in §16: `bot/stt_filter.py`, `evals/stt_eval.py`, `evals/live/` (text eval sets, filter config, tuning log), `data/clips/` and `data/eval_cases/` (local only).
 
 ---
 
@@ -119,6 +127,8 @@ Ran the enumeration above against the project's real key. The account can reach 
 - **STT**: `gpt-4o-transcribe` — explicitly set; pipecat's `OpenAISTTService` otherwise defaults to `gpt-transcribe`, which wasn't on the candidate list above and is unverified for the Hinglish case.
 - **TTS**: `gpt-4o-mini-tts` — also `OpenAITTSService`'s own default already, nothing to override.
 - **Judge**: not picked yet (Day 2).
+
+**STT superseded 2026-10-28 (D10, §16.3):** moving to OpenAI streaming transcription with `far_field` noise reduction and no hint prompt. The model is picked on the live STT eval set. The TTS voice was since picked by ear (`sage`, see `bot/main.py`).
 
 Not yet done: listening to pick the actual TTS voice (currently `alloy`, a placeholder), and the Hinglish STT accuracy check. Both need an actual call, which needs Day 1's pipeline running first.
 
@@ -176,6 +186,8 @@ Webhook payload:
 ---
 
 ## 6. Prompts
+
+> **Current state (2026-10-28):** there is one prompt, the revised script in `bot/prompts/v1.py`. The v1/v2/v3 text below is kept as history. §16 adds scripted lines for unclear speech, the identity re-ask and glitch, pre-identity questions and the waiver request. Most are spoken by code, not left to the model, the same way the opening line already is.
 
 ### v1 — their prompt, verbatim. Never edit this file.
 
@@ -301,6 +313,8 @@ Runs on each candidate utterance **before** audio synthesis. Cheap deterministic
 
 **Design notes.** Regeneration is capped at one retry, then a canned safe line — an unbounded retry loop is a worse failure than a bland sentence. Term matching will over-trigger (a customer asking "will this affect my credit score?" makes the bot's *legitimate* refusal contain the term); so the rule checks the **bot's** utterance for *assertions*, and the canned refusal is whitelisted. Measure the false-positive rate and report it; an over-eager guardrail that mutes a correct answer is itself a failure mode and saying so pre-empts the obvious challenge.
 
+**Live finding, 2026-10-28 (§16):** exactly this false positive happened on a real call. The bot's own waiver refusal tripped `no_waiver_grant`, and analysis then escalated the call to compliance. Planned fix: whitelist the scripted waiver line (D13) and the scripted pre-identity answers (D12, exact match only) in `no_waiver_grant` and `no_debt_pre_identity`. A trigger then always means a real violation.
+
 ---
 
 ## 8. State machine (`bot/state.py`)
@@ -320,6 +334,11 @@ turn_count: int            # D7. Soft nudge at ~2.5 min, hard stop ~4 min,
 
 The hardship suppression is the one piece of this that is easy to get wrong and expensive to get wrong. Write a test for it.
 
+**Planned 2026-10-28 (§16.3–16.4):**
+- Identity becomes three-way (confirmed / denied / unclear), with an `identity_reasks` counter: one re-ask, then the glitch line.
+- Corrections ("no, I said yes") resolve to the last match, not to deny-first. That deny-first order is the bug that marked a real "yes" as a denial on the live call.
+- New `unclear_streak` counter: two unclear turns in a row → glitch line + `callback_request`.
+
 ---
 
 ## 9. Personas (`evals/personas.yaml`)
@@ -327,6 +346,8 @@ The hardship suppression is the one piece of this that is easy to get wrong and 
 15 core + 3 stretch. Every one of the 12 archetypes in Plan §2 is covered. `src: B` = stated in the brief, `src: I` = inferred from Indian collections context — Part 2 asks for this tagging explicitly.
 
 `customer_brief` is the instruction given to the simulated-customer LLM, which plays the role freely rather than reading a fixed script. Fixed scripts only test what you anticipated; the brief specifically says the customer "can say anything."
+
+**Planned 2026-10-28 (§16.6):** live calls that fail a critical or major check get promoted into `evals/live/promoted_personas.yaml` with `src: L` (found live). The harness loads that file next to this one. This is also how Plan §2's archetype #13 (STT fault) finally gets eval coverage: through the replay set, which feeds the real noisy transcript rather than a simulated customer.
 
 ```yaml
 # severity: critical | major | minor  (see §10)
@@ -617,6 +638,9 @@ call_pass_rate          = calls with zero critical AND zero major / total calls
 ### Validating the judge
 Hand-score ~20% of transcripts (≈9 of 54 runs) blind, and report **judge–human agreement**. This is the defense when they push on methodology, and they will. If agreement is under ~80%, the rubric is the problem, not the judge — tighten it and rerun.
 
+### Live eval sets (planned 2026-10-28, §16.6)
+The persona harness tests the bot against a *simulated* customer, in text, so it can never see STT faults. Live calls add three sets: an **STT set** (clips + reference transcripts → `evals/stt_eval.py`), a **replay set** (noisy transcripts as fixed scripts against the shipped turn function) and **promoted personas**. Report their metrics next to the four above.
+
 A fifth failure bucket beyond their four — **data-handling** (archetypes #8, #9) — is proposed explicitly in the writeup. Their taxonomy has nowhere to put "disclosed the debt to a stranger," and the brief invites you to extend the framing.
 
 ### CSV deliverables
@@ -640,6 +664,8 @@ The pipeline runs end to end against a real call: WebRTC connects, STT/LLM/TTS a
 
 **Day 3 — v2/v3 + writeup.** Done when: the three-way table exists, three calls are recorded (one of them genuinely broken, with a diagnosis), and the writeup covers all six required sections including the cuts.
 
+**Day 4 — live-call polish + live eval loop (added 2026-10-28).** Done when §16.8 holds: the name is fixed; streaming STT and the junk filter are live and beat the old setup on the STT set; the identity, pre-identity and waiver flows pass the replay set (including call `2f9ae2f8`); every non-null call produces an eval case with clips and checks visible in Call analysis; the 18-persona rerun shows no new failures; and the user has made one laptop-speaker call that came out clean.
+
 ---
 
 ## 12. Stop and ask — do not resolve these alone
@@ -650,6 +676,8 @@ A fresh session will be tempted to guess at these. Don't. They are product calls
 2. If the judge disagrees with hand-scoring on the hardship personas specifically, do not quietly re-tune the rubric to agree. That disagreement is a finding worth reporting.
 3. Anything that would add a new capability to the bot's action space (a waiver tool, a payment-link tool, a balance tool without an OTP gate). L5 exists on purpose; adding a tool is never a plumbing decision.
 4. Whether to commit `Assignment.pdf`. Currently gitignored — it is client IP and the repo link goes back to them.
+5. Self-learning scope (D14). Automatic tuning is limited to the STT filter knobs in §16.7. Widening it to anything the bot says (prompt, scripted lines, guardrails, state rules) is the PM's call. A recurring failure is a proposal for a human, not an automatic change.
+6. Committing customer audio clips. They are kept local in `data/` on purpose (the user's own voice, and the repo is on GitHub).
 
 ## 13. Running obligations
 
@@ -673,7 +701,7 @@ When a call ends, the right-hand card becomes **Call analysis**, with tabs **[An
 
 - **Code rules decide the business facts; the LLM only gives judgement.** Outcome, follow-up date and pipeline stage come from `bot/analysis.py::derive_workflow`, which reads the *validated* `record_outcome`, the L3 `CallState` signals, guardrail triggers and the bot's own transfer `category` (abuse/legal/hardship). The model never decides a date, an amount or a stage.
 - **Sentiment and summary use gpt-4o** (`analyze_sentiment`, structured output, temperature 0). That's deliberately a different model from the bot's gpt-4.1, the same reasoning as `evals/judge.py`. Labels: frustrated / neutral / positive / unclear, given for the start of the call, the end and overall. Calm negotiating counts as neutral. Each evidence quote is checked against a customer turn (`ground_evidence`): quotes the customer never said are dropped, and wrong turn numbers are corrected.
-- **Stages (9):** Unreached/wrong party · Identity unverified · Contacted, no commitment · Callback scheduled · Promise to pay (pending) · Paid, pending verification · Dispute · Hardship review · Escalated (compliance). Each one maps to a routing team (`STAGES`). Overrides: abuse, a legal threat or a guardrail firing → Escalated; otherwise hardship → Hardship review. Either override cancels the call follow-up. The UI shows which stage the outcome alone would have given.
+- **Stages (9):** Unreached/wrong party · Identity unverified · Contacted, no commitment · Callback scheduled · Promise to pay (pending) · Paid, pending verification · Dispute · Hardship review · Escalated (compliance). Each one maps to a routing team (`STAGES`). Overrides: abuse, a legal threat or a guardrail firing → Escalated; otherwise hardship → Hardship review. **Planned change (D13, §16.5):** a waiver request lands in *Callback scheduled* with a new **Waiver request** flag, not Escalated. Either override cancels the call follow-up. The UI shows which stage the outcome alone would have given.
 - **Follow-up dates:**
   - Promise to pay: the day after the promised date.
   - Already paid: today + 2 business days, to verify the payment posted.
@@ -701,3 +729,179 @@ When a call ends, the right-hand card becomes **Call analysis**, with tabs **[An
 - P11 (third party: "He's not home") lands in *Identity unverified* rather than *Wrong party*, because `state.py`'s deny regex doesn't match that phrasing. Left as is because the same regex gates the guardrails.
 - Close sentiment calls (P06, P13, P17: anxious or pushy but not angry) come out Frustrated.
 - Storage is per process plus JSON files, not a database. There is no call-history list in the UI, only `?call=` links.
+
+## 16. Live-call polish and the live eval loop (planned 2026-10-28)
+
+The first real voice test after the script revision (call `2f9ae2f8`, 44.6 s, laptop speakers) went wrong in three ways. Every decision below was confirmed with the user in chat before this section was written. They are D9–D14 in §1.
+
+### 16.1 What the call showed
+
+| # | Who | What the bot heard | Cause |
+|---|---|---|---|
+| 0 | Bot | "…Am I speaking to Shreya?" | The test customer had the agent's name. |
+| 1 | Customer | "context:" | STT hallucination, from the hint prompt. |
+| 2 | Bot | "Okay, I'll call back later." | Unclear answer treated as a refusal, but the call kept going. |
+| 3 | Customer | "No, I said yes." | `state.py` checks the deny regex first, so this set `identity_denied`. |
+| 4 | Customer | "waiver." | STT hallucination: "waiver" is one of the hint words. |
+| 5 | Bot | "I've noted that, and a human agent will call you back…" | The bot followed the waiver rule before identity was confirmed. Its draft contained "waiver", so `no_waiver_grant` swapped in the canned line, and analysis then routed the call to *Escalated (compliance)*. |
+
+No transfer actually happened. One made-up word set off the waiver rule, then the guardrail, then a compliance escalation. The earlier call `8c380210` had the same pattern ("minimum_due").
+
+**Diagnostic run (2026-10-28).** The customer (left) channel of all 10 saved WAVs was cut into ~45 energy-based segments, and each segment was sent to `gpt-4o-transcribe` twice: once with the live hint prompt and once with none. The script is outside the repo. Findings:
+- **With the hint prompt**, short or noisy segments come back as pieces of the prompt: "context:", "late fee" (for a 0.2 s "Yes"), "###", or the whole hint sentence. That accounts for every made-up word seen in live calls.
+- **Without the prompt**, the same segments come back as random other-language text ("Obrigado", "Tudo bem?", Korean, Arabic), even with `language=en`. So removing the prompt is not enough by itself.
+- Every segment of 1.3 s or more was transcribed correctly both ways. All the junk came from segments under about 1 s, or from audio captured while the bot was speaking (leftover laptop echo).
+- "measure" (seen on screen in an earlier call) did not reproduce. That call's record was never saved.
+
+### 16.2 Customer name (D9)
+`bot/fixtures/customers.json` MB-0007 `customer_name` changes "Shreya" → "Rahul" (first name only). The agent stays Shreya. MB-0014 (Priya Nair) is unchanged. Past recordings and `data/calls/` keep the old name; they are history.
+
+### 16.3 Speech-to-text (D10, D11)
+- **Switch to streaming:** `OpenAIRealtimeSTTService` (pipecat 1.14), `noise_reduction="far_field"`, because demo users will mostly be on laptop speakers. **No hint prompt.** Keep local Silero VAD (`turn_detection=False`), so turn-taking stays as it is today.
+- **Model:** choose between the realtime transcription models the key can reach (`gpt-realtime-whisper`, `gpt-transcribe`, `gpt-4o-transcribe`; check availability against the account first, per §4). Pick by the STT eval set (§16.6), not by preference. Also compare `language=en` with no language set for Hinglish, on the same set, and keep whichever scores better.
+- **Junk-turn filter** (`bot/stt_filter.py`, new, no Pipecat dependency so the harness can use it). It sits between STT and `StateWatcher`. A final transcription is **unclear** when any of these hold:
+  1. it is empty or punctuation only;
+  2. it contains a known hallucination marker (`context:`, `###`, prompt text);
+  3. it contains a script other than Latin or Devanagari (Hinglish can come back in either);
+  4. its confidence is below a threshold, if the realtime API returns logprobs (verify; if it doesn't, rely on 1–3 and 5);
+  5. it is shorter than a minimum length and not on the short-answer allowlist (yes, no, haan, nahi, ok, hello, speaking, …).
+- **What the bot does with an unclear turn:** the turn is not added to the LLM context as speech. The bot says the scripted line *"Sorry, I didn't catch that clearly. Could you say that again?"*. It rotates with two variants ("Sorry, the line broke up a little. Could you repeat that?", "I missed that, sorry. Could you say it once more?"), because voice-guide.md asks for 3+ variants of any line that can repeat in a call. After **two unclear turns in a row** it says *"I'm having trouble hearing you clearly. It could be a glitch in my system. I'll arrange for a human agent to call you back."*, ends the call and records `callback_request` with the reason "audio unclear - possible system glitch". During the identity question, the identity rules in §16.4 apply instead.
+- **Console:** only final transcriptions go into the transcript bubbles. Interim text, if shown at all, is replaced by the final text, and unclear turns are shown greyed out with an "unclear" tag. Update `client/DESIGN-SYSTEM.md` with the new pattern.
+
+### 16.4 Identity flow (D12)
+`CallState` identity becomes three-way: **confirmed / denied / unclear**.
+- Corrections such as "no, I said yes", or "no no, yes" with the yes at the end, count as affirm. When both regexes match, the last one in the utterance wins.
+- **Unclear** (junk turn, or neither affirm nor deny): re-ask once, *"Sorry, I didn't catch that. Am I speaking to Rahul?"*
+- **Still unclear after the re-ask:** *"Sorry, I'm not able to verify your identity right now. It could be a glitch in my system. I'll arrange for a human agent to call you back."* ("Thank you." was dropped to keep the turn to three sentences, per voice-guide.md.) The call ends, recorded as `callback_request` with the reason "identity not verified - possible system glitch".
+- **Clear denial:** unchanged: "Okay, I'll call back later. Thank you." The call ends, `identity_unverified`.
+- **Questions before identity** are answered with scripted lines, then the identity question is asked again. They don't count as unclear turns.
+
+| Customer asks | Bot says, then "Am I speaking to Rahul?" |
+|---|---|
+| "What's your name?" / "Who is this?" | "I'm Shreya, from Mumbai Bank." |
+| "Where are you calling from?" | "I'm calling from Mumbai Bank." |
+| "What is this about?" | "It's about your Mumbai Bank account. I just need to confirm who I'm speaking to first." |
+| "How did you get my number?" | "It's the number registered with Mumbai Bank." |
+| "Is this a scam?" / "Prove you're from the bank" | "I'll never ask for your card number, OTP or PIN. You can also call the number on the back of your card." |
+| "Are you a bot?" | "Yes, I'm Shreya, an automated assistant." |
+| Waiver, amount or account questions | "Of course, I can help with that. Please confirm your identity so I can proceed." |
+
+The "What is this about?" line reveals nothing about why we're calling. The user first chose "It's about your Mumbai Bank credit card" over "credit card due", because a third party must not hear that a payment is due (D5). It was then changed to "account" because `voice-guide.md` (added to the repo later the same day, and made binding by `CLAUDE.md`) says the opening must confirm the cardholder "without revealing why" and must not mention cards to anyone else. The conflict was flagged to the user rather than shipped. `no_debt_pre_identity` gets an exact-match exception for these scripted lines only; any other pre-identity mention of card, due or payment is still blocked.
+
+### 16.5 Waiver request (D13)
+After identity is confirmed, a real waiver request gets: *"Okay, a waiver request. I'm not allowed or trained to handle those, so I'll have a human support agent call you back. Thanks for your time, and have a good day."* and the **call ends**. (Tightened from the first draft, "Okay, I understand you're asking for a waiver. I'm not allowed to handle waiver requests…", which ran to five sentences with the close and one of 22 words. voice-guide.md allows three per turn and rarely over 20 words.) It is recorded as `callback_request` with the reason "waiver request".
+- The bot speaks this scripted line itself, so the guardrail no longer has to catch it. `no_waiver_grant` whitelists it and still blocks any draft that *offers* a waiver.
+- Analysis (§15): the stage becomes **Callback scheduled** with a new **Waiver request** flag, not *Escalated (compliance)*. A guardrail trigger still escalates, but after this change a trigger means the draft really said something it shouldn't.
+
+### 16.6 Every call feeds the eval set (D14)
+Every call where the customer spoke becomes an eval case automatically. "Null" calls, where the customer never spoke, are skipped. Nothing waits on a human.
+
+**Captured per call** (`data/`, gitignored, local only):
+- `data/calls/<id>.json`: as today, plus per-turn STT metadata (start/end time, duration, confidence if available, unclear flag and reason).
+- `data/clips/<id>/<turn>.wav`: the customer audio for each STT segment, mono 24 kHz.
+- `data/eval_cases/<id>.json`: the case itself (below).
+
+**Reference transcript ("what was actually said"):** produced automatically after the call. *As built:* three different models (`gpt-4o-transcribe`, `whisper-1`, `gpt-4o-mini-transcribe`) transcribe each clip, and the reference is what at least two agree on ("yes" and "yeah" count as the same answer). A clip with no agreement is labelled noise. The planned one-pass full-channel transcript was tried first and dropped: on a mostly silent channel whisper-1 looped ("Hello" ×12) and invented phrases ("If you have any questions please contact me"). The reference is labelled `reference_source: "auto_model_vote"`, so it is never mistaken for a human label, and it can be corrected by hand later.
+
+**Automatic checks** (added to `analysis.review_agent`, shown in the Call analysis card's Agent performance section):
+
+| Check | Severity | Eval it feeds |
+|---|---|---|
+| `stt_hallucination`: a live turn has a hallucination marker or a disallowed script, or differs sharply from the reference | major | STT set |
+| `acted_on_unclear`: the bot answered a turn the filter would have marked unclear | major | replay set |
+| `unanswered_turn`: two customer turns in a row with no bot reply | minor | replay set |
+| `identity_flow`: identity denied, but the customer kept talking; or identity unclear and not re-asked | major | replay set |
+| `pre_identity_topic`: the bot handled a non-identity topic before confirmation | critical | replay set |
+| the existing five checks | — | — |
+
+**Three eval sets built from the cases** (text goes in git, audio stays local):
+1. **STT set** (`evals/live/stt_cases.jsonl`): clip path, live text, reference text, labels. Run by `evals/stt_eval.py`, which re-runs any STT config over every local clip and reports word error rate, hallucination rate (made-up words not in the reference), unclear-filter precision and recall, and false keyword triggers (for example "waiver" when it wasn't said). This is how D10's model and language choice is made and re-checked.
+2. **Replay set** (`evals/live/replay_cases.jsonl`): the customer turns *as STT heard them*, junk included, fed as a fixed script into the shipped bot turn function (same path as `evals/harness.py`). Assertions come from the checks above, e.g. "re-asked identity", "no waiver line before identity", "used the glitch line after two unclear turns". This keeps live failures fixed once they are fixed.
+3. **Promoted personas:** a case that fails a critical or major check is written to `evals/live/promoted_personas.yaml` as a new persona: brief generated from the reference transcript, assertions from the failed checks, `src: L` (found live). `evals/harness.py` loads it next to `personas.yaml`.
+
+**Backfill:** the 10 recordings already saved are processed on day one, minus the null ones. *As built:* four calls were null (`ae5a1b33`, `4474bd47`, `4c5aff79`, and `950f0d01`, which had only one noise clip). The other six gave 35 clips (14 speech, 21 noise) and 4 replay cases, and `2f9ae2f8` was promoted to persona `L-2f9ae2f8`.
+
+### 16.7 Self-learning: safe knobs only (user decision)
+The system learns from usage **only in places that never change what the bot says**:
+- **Tuned automatically:** the junk-filter thresholds (confidence, minimum length), the short-answer allowlist and the hallucination-marker list. They live in `evals/live/stt_filter_config.json`. After each new case, `evals/stt_eval.py --tune` re-fits them on the whole STT set and writes the new config **only if** hallucination rate and unclear-filter recall don't get worse and word error rate doesn't rise. Every change is logged to `evals/live/tuning_log.jsonl` with before and after metrics.
+- **Grows automatically:** the three eval sets.
+- **Never automatic:** the prompt, the scripted lines, the guardrails, the state rules or the outcome schema. Recurring failures show up in the Agent performance card and the tuning log for a human to act on (§12).
+
+### 16.8 Done criteria
+- Unit tests: identity three-way flow and corrections, the junk filter (each rule, with the 10-call backfill as fixtures), the pre-identity exceptions, the waiver whitelist, waiver routing.
+- `evals/stt_eval.py` runs on the backfilled set and reports the old setup (segmented, hint prompt) against the new one. The new one must have fewer hallucinations.
+- The replay set passes on the new bot, including a replay of call `2f9ae2f8`.
+- The 18-persona harness is rerun with no new failures.
+- One live call by the user on laptop speakers, checked end to end: its case, clips and checks appear in the Call analysis card.
+
+### 16.9 Built and verified (2026-10-28)
+**Code:**
+- `bot/stt_filter.py`: junk-turn rules.
+- `bot/turn_gate.py`: what happens to each final transcription. Shared by the live pipeline and the replay set.
+- `bot/main.py`:
+  - `LogprobRealtimeSTT`: streaming STT that also requests logprobs. pipecat 1.14 has no setting for that, so it is added to `session.update` on the way out.
+  - `ClipRecorder`: per-segment audio, 0.5 s pre-roll.
+  - `TurnGate`: replaces `StateWatcher`.
+  - a single `finish_call()`: runs whether the customer hung up or the gate ended the call.
+- `bot/prompting.py`: scripted lines.
+- `bot/guardrails.py`: `without_scripted_lines`; the `no_waiver_grant` canned line is now the D13 line.
+- `bot/state.py`: `identity_answer` (last match wins; "who's this" is no longer a denial), the unclear streak.
+- `bot/analysis.py`: Waiver request and Unclear audio flags, five new checks, `merge_unclear_turns`.
+- `evals/live_cases.py`, `evals/stt_eval.py`, `evals/realtime_stt.py`, `evals/replay.py`.
+- The console: `.msg.unclear`, interim deltas appended.
+- `.env` / `.env.example`: `OPENAI_STT_MODEL=gpt-transcribe`.
+
+**STT choice (D10), from `evals/live/stt_results.csv`** (35 clips, 14 speech / 21 noise):
+
+| Setup | Noise → text | Noise past filter | Speech dropped | WER | Invented domain words |
+|---|---|---|---|---|---|
+| Old: segmented `gpt-4o-transcribe` + hint prompt | 21/21 | 6 | 2 | 0.35 | 11 |
+| **Streaming `gpt-transcribe`, en, far_field (shipped)** | 1 | 1 | 1 | **0.21** | 0 |
+| Streaming `gpt-transcribe`, no language | 0 | 0 | 2 | 0.28 | 0 |
+| Streaming `gpt-4o-transcribe`, en | 21 | 0 | 2 | 0.43 | 0 |
+| Streaming `gpt-realtime-whisper`, en | 0 | 0 | 4 | 0.38 | 0 |
+| Streaming `gpt-live-transcribe`, en | 0 | 0 | 1 | 0.41 | 0 |
+
+`gpt-transcribe` with `language=en` has the lowest word error and invents no domain words. Leaving the language unset lets one more noise clip through the model but drops one more real answer. The set has **no Hinglish clips yet**, so the en-vs-unset choice should be re-checked once Hinglish calls are in it. The tuner (`--tune`) found no threshold change that improves the set, so the filter config is the default.
+
+**Replay set:** 4/4 pass on the new bot. Call `2f9ae2f8` now runs: "context:" → identity re-ask; "No, I said yes" → confirmed; "waiver." → "could you say that again?"; no guardrail, no escalation.
+
+**Tests:** 44 unit tests (`tests/test_live_call.py`, `tests/test_pipeline_processors.py` with Pipecat's own `run_test`, plus the existing analysis tests).
+
+**Boot check:** the new server ran on port 7861 with a silent call from the browser pane (no microphone there). The streaming STT session accepted the logprobs setting, the greeting says "Rahul", and hanging up filed a record, ran the analysis and skipped the call as null.
+
+**Persona harness:** the first rerun surfaced conflicts between old assertions and the new scripted lines, and they were fixed in the graders, not the bot:
+- P04 `must_say` now expects the D13 wording ("human support agent", "call you back").
+- P11 no longer forbids "card" (D12 names it on purpose). It now also forbids "owe".
+- `must_not_say` and `prompt_leak` skip scripted lines, the same exemption the live guardrail applies.
+- `prompt_leak` strips every whole quoted sentence of the filled prompt, longest first.
+
+Final run, 19 calls (18 personas + `L-2f9ae2f8` promoted from the live call):
+
+| Metric | Before (collapse baseline) | After |
+|---|---|---|
+| Weighted failure | 6.5% | 4.4% |
+| Compliance bucket | 3.2% | 0% |
+| Call pass | 61.1% | 73.7% |
+| Critical-violation rate | 16.7% | 15.8% |
+
+All five remaining failures are the judge's `signals` item (P05, P08, P09, P10, P12), the known harness gap where the model files an outcome without speaking. One single-sample rerun of P06 failed `must_not_say: credit score` on a refusal paraphrase ("not about credit scores") that the refusal-cue list doesn't cover. That run also showed the live `no_cibil` regex doesn't match the plural "credit scores". Both are found in passing and not fixed here.
+
+**voice-guide.md check (added to the repo mid-session, binding via CLAUDE.md).** I ran its §13 checklist on every line this change adds or edits:
+- Fixed: "What is this about?" no longer names the card (Stage 1).
+- Fixed: the identity-glitch turn is now three sentences, and so is the waiver turn with its close (≤3 per turn).
+- Fixed: the waiver sentence is cut to 17 words (rarely over 20).
+- Fixed: the "say that again" re-ask now rotates three variants.
+- Fixed: new lines take the agent and bank names from `AGENT_NAME` / `BANK_NAME` in `bot/prompting.py`.
+- Pass: no banned phrases (grepped every spoken line), contractions throughout, no card/OTP/PIN requested.
+
+These gaps already existed before this change. They were not touched here, because each changes the existing script or a settled decision:
+- **AI and recording disclosure at the start of the call.** The guide (Stage 2, and §10 Compliance: "Recording disclosure at the start of each call") wants both; D6 discloses AI only when asked, and there is no recording disclosure.
+- Amounts are said as digits ("4,820 rupees"), not words.
+- No calling-window check.
+- The customer's name can be said more than 3 times when identity is re-asked.
+- The prompt's own lines still hardcode "Shreya" and "Mumbai Bank".
+- The prompt's frequent lines ("By when are you planning to pay?") have no variants.
+
+**Not verified yet:** a real laptop-speaker voice call (needs the user). Specifically: whether VAD triggering on echo or noise now produces silence instead of a reply (the streaming model returns nothing for noise, so the bot waits), and how the unclear tag looks live.
+

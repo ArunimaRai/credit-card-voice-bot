@@ -38,6 +38,8 @@ Cascade does not mean multi-vendor. It means there is a **text bottleneck** in t
 3. **The live session.** "Why this STT, why this voice" has a real answer in a cascade. In Realtime the honest answer is "they came bundled."
 4. **Optionality.** Pipecat components are pluggable, so swapping Realtime in is config, not a rewrite. Build cascade → measure → the comparison becomes a writeup paragraph.
 
+**STT inside the cascade (revised 2026-10-28).** The first live tests showed the STT layer is where a cascade is weakest, not the LLM. A domain hint prompt meant to help short utterances made `gpt-4o-transcribe` invent words from the hint list ("waiver", "late fee", "context:"). One made-up "waiver" then ran through the rest of the pipeline and became a compliance escalation. The fix stays inside the cascade: streaming transcription with noise reduction, no hint prompt, and a junk-turn filter so the LLM never acts on a turn the customer didn't clearly say. The broader lesson: **every layer's input is untrusted, including your own STT's output.** Details in Execution Plan §16.
+
 **What this costs me, stated honestly:** Realtime wins on latency (sub-second vs ~1–2s), barge-in quality, and non-verbal signal — it hears distress and hesitation that a transcript flattens, which is genuinely relevant to the medical-emergency/job-loss transfer rule. My defense: real collections agents pause; a 1.5s gap on a 2–3 minute call is natural. Losing 800ms is survivable. Losing the compliance layer is not.
 
 > ⚠️ Pin exact model IDs and current prices against OpenAI docs on day 1. Do not carry an unverified number into the live session.
@@ -84,12 +86,16 @@ Source: **B** = stated in brief · **I** = inferred from Indian collections cont
 | 11  | **Language switcher** — full Hindi/Marathi, may not speak English                              | B(partial) | L1+L2 | mention that while you are learning new languages, you currently can understand and speak English only. Stay English per brief, **but log a `language_barrier` signal**                                   | Comprehension failure recorded as a valid outcome                                     |
 | 12  | **Confused / vulnerable** — elderly, hard of hearing, doesn't follow                           | I          | L1+L3 | Comprehension check before accepting any commitment                                                                                                                                                       | Extracted a commitment someone didn't understand. Legally void, ethically worse       |
 | 13  | **STT-induced language switch** — the *pipeline*, not the customer, triggers the language change: a short/ambiguous utterance gets misrecognised in a non-English script, and the bot carries the misread as if the customer had switched | I (found live, Day 1 2026-10-28 — see `recordings/`) | L1+L4 | Output guardrail (L4) rejects any bot utterance not in Latin/English script and forces regeneration in English, regardless of what script the transcript contains; v2's "always respond in English" (L1) is the first line of defence but is unverified against this specific trigger — confirm on Day 2 whether prompt wording alone survives it | Bot conducts an entire compliance-sensitive call — including the credit-score and legal-action lines — in an unevaluated, unaudited language, without anyone deciding to ship that. Worse than #11: not a declined-but-instrumented constraint, an unnoticed pipeline fault. Exactly Plan §3's no-list item 3 ("Hindi output before Hindi evals exist"), except nobody chose it |
+| 14  | **STT-hallucinated intent** — noise or a short sound is transcribed as a real domain word ("waiver", "late fee") and the bot acts on it as if the customer said it | I (found live, 2026-10-28, call `2f9ae2f8`) | L3+L4 | Junk-turn filter before the LLM; ask the customer to repeat; after two unclear turns, apologise for a possible glitch and arrange a human callback. During identity: one re-ask, then the same. Never act on a single surprising word | A customer who only said "yes" gets told a human will call about a waiver, the call is filed as a compliance escalation, and the CRM records a request they never made |
+| 15  | **Caller-verification questions** — "Who is this?", "What is this about?", "Is this a scam?" before identity is confirmed | I (live, 2026-10-28) | L1+L3 | Answer with scripted lines that name the bank, never the card or a debt (voice-guide.md: confirm the cardholder "without revealing why"), then ask for identity again | Ignoring the question sounds like a scam call; answering it freely discloses the debt to a third party (#8) |
 
 **The asymmetry principle (#6, and it generalises):** do not build sincerity detection. A false transfer costs a few agent-minutes. A missed genuine hardship costs a person in crisis and a reputational event. When error costs are asymmetric by three orders of magnitude, bias hard toward the cheap error and say so out loud. Guessing at sincerity is also precisely the capability a collections bot should not have.
 
 **Instrument the constraints you accept (#11).** The brief says English-only. Fine — but log how often the customer couldn't follow. That turns an accepted constraint into a measured one, and gives the bank the data to decide whether Hindi is worth building. A PM accepts a constraint *and* instruments it.
 
 These archetypes become the backbone of the Part 2 persona set — the original 12 across 15 scenarios, with the extra three as combination traps (hardship + abuse, third party + dispute, jailbreak + waiver). **#13 is not yet represented in `evals/personas.yaml`** — it can't be scripted as a `customer_brief` the way the others are, since it's a pipeline fault, not a customer behavior; it needs either a fixture-level audio/text injection to force it reliably, or at minimum an assertion that checks bot-output script stays Latin across a whole run. Resolve this during Day 2 persona design, not by inventing a customer persona that wouldn't actually reproduce it.
+
+**Resolved by design, 2026-10-28:** #13 and #14 get coverage from the live eval loop (§4, Day 4), not from a simulated persona. The noisy transcript of a real call is replayed as a fixed script against the shipped bot, and the call's audio clips feed an STT eval. Pipeline faults are tested with the pipeline's own output.
 
 > ⚠️ Verify before the writeup: RBI Fair Practices Code / recovery-agent guidance on call-hour windows and harassment, and DPDP Act 2023 obligations. Directionally I'm confident; do not quote specifics in a live session unverified.
 
@@ -104,6 +110,8 @@ Identify as a bot when asked, plainly and once. Never invent consequences (the v
 
 **Client (bank) trust — auditability and zero unauthorised commitments.**
 Every call leaves a structured outcome, a full transcript, and a guardrail-trigger log. Any violation is reproducible from artefacts. And the bot cannot grant what it was never given authority over (L5). The bank's real question is not "is it polite" but "what is the worst thing this can say on a recorded line, and who is liable."
+
+**Honest failure is part of customer trust (added 2026-10-28).** When the bot can't hear or can't verify someone, it says so in plain words ("it could be a glitch in my system") and arranges a human callback. It never guesses what the customer meant, and it never ends a call by blaming the customer.
 
 **Operator trust — the humans receiving transfers.**
 A transfer must arrive with context: why it escalated, what was said, what the customer asked for. Cheap to build, and it is what determines whether the human side actually adopts the system instead of routing around it.
@@ -129,6 +137,7 @@ Shadow mode (bot listens, human talks, outcomes compared) → 5% of volume with 
 2. **Auto-approving waivers, even small ones.** Moves the bot from *informing* to *deciding*, which needs an authority model, an audit trail, and a liability answer that don't exist yet.
 3. **Hindi output before Hindi evals exist.** Shipping unmeasurable compliance risk in a language the eval set cannot score.
 4. **Unlimited retries / autonomous call-volume decisions.** Harassment by architecture, and the fastest route to a regulatory complaint.
+4b. **A bot that rewrites its own script from usage.** Self-learning is limited to knobs that never change what the bot says (the STT junk filter), and only when the evals don't get worse. Prompt and guardrail changes learned from calls are proposals for a human. An unreviewed self-edit to a compliance script is the same risk as an unreviewed prompt.
 5. **Settlement negotiation.** Needs a human and a mandate.
 
 ---
@@ -158,6 +167,14 @@ Shadow mode (bot listens, human talks, outcomes compared) → 5% of volume with 
 - Record 3 browser calls: one clean, one broken. **Ship the broken one** — they asked for it, and an honest break with a diagnosis scores better than three clean demos.
 - Writeup, CSV, repo tidy.
 
+### Day 4 — live-call polish and the live eval loop (added 2026-10-28)
+The first real voice tests showed failures no text eval could catch: a customer with the agent's own name, STT making up domain words, and one made-up "waiver" turning into a compliance escalation before identity was even confirmed. Day 4 fixes those and closes the gap that let them through:
+- Rename the test customer to Rahul.
+- Streaming STT with noise reduction, no hint prompt, and a junk-turn filter.
+- A three-way identity flow with one re-ask and an honest glitch line. Scripted answers to "who is this / what is this about". A scripted waiver line that ends the call.
+- **Every real call becomes eval data automatically:** an STT set, a replay set and promoted personas. The bot learns from usage only in knobs that don't change what it says.
+- **Done means:** Execution Plan §16.8.
+
 ---
 
 ## 5. Cuts, declared up front
@@ -165,7 +182,8 @@ Shadow mode (bot listens, human talks, outcomes compared) → 5% of volume with 
 - No telephony (Twilio) — a day of plumbing for something not graded. Browser WebRTC instead.
 - No Hindi output — brief says English-only; see §3 no-list item 3.
 - No transfer implementation — brief explicitly says outcome only.
-- No multi-vendor STT/TTS bake-off — one key, one stack, reasoning documented.
+- No multi-vendor STT/TTS bake-off — one key, one stack, reasoning documented. (Day 4 compares OpenAI STT setups on real call audio, still within one vendor.)
+- No human review step per call — checks and reference transcripts are automatic (Day 4). Reference transcripts are machine-made and labelled as such.
 - No barge-in tuning beyond Pipecat defaults.
 - No CRM integration beyond the webhook.
 
@@ -182,4 +200,5 @@ Shadow mode (bot listens, human talks, outcomes compared) → 5% of volume with 
 
 - Abuse threshold for #3 — where exactly does irritation become abuse? This is a product decision and the writeup should state the line, not dodge it.
 - Does the 2–3 min target get enforced as a hard turn budget, or as prompt guidance? Hard budget risks cutting off a genuine hardship disclosure.
-- Identity verification depth for #8 — how much before any account discussion, given OTP gates balance but not existence of the debt?
+- Identity verification depth for #8 — how much before any account discussion, given OTP gates balance but not existence of the debt? *(Partly answered 2026-10-28: before identity the bot may name the bank and say it's about "your account", never the card or the debt; D12.)*
+- Which OpenAI streaming transcription model and language setting handle Indian English plus Hinglish best? Decided by the live STT eval set, not by preference (Day 4).

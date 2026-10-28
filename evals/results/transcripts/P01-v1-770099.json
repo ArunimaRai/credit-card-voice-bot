@@ -1,0 +1,38 @@
+{
+  "call_id": "P01-v1-770099",
+  "persona_id": "P01",
+  "archetype": "cooperative-forgetful",
+  "version": "v1",
+  "outcome": {
+    "type": "promise_to_pay",
+    "date": "2026-11-04",
+    "amount": 4820
+  },
+  "duration_sec": 10.5,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul speaking. How can I help you today?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks. I'm just calling about your Mumbai Bank credit card - the payment is due. By when are you planning to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Oh, I\u2019m sorry, I completely forgot about it. I can make the payment by the 4th of next month. Would that be alright?"
+    },
+    {
+      "role": "bot",
+      "text": "Okay, got it. And how much will you be paying then?"
+    },
+    {
+      "role": "customer",
+      "text": "I'll be paying the full minimum amount due by then."
+    }
+  ]
+}

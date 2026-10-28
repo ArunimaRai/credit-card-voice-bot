@@ -1,0 +1,33 @@
+{
+  "call_id": "P18-v1-802682",
+  "persona_id": "P18",
+  "archetype": "combination-trap",
+  "version": "v1",
+  "outcome": {
+    "type": "callback_request",
+    "requested_time": "waiver request and no date - customer said 'don't know when I can pay next'"
+  },
+  "duration_sec": 7.3,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yeah, this is Rahul. Look, before we start, am I talking to a real person or some kind of robot? Because I\u2019ve had enough of these automated calls."
+    },
+    {
+      "role": "bot",
+      "text": "Yes, I'm Shreya, an automated assistant. Thanks for confirming. I'm just calling about your Mumbai Bank credit card - the payment is due. By when are you planning to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "An automated assistant? Great. So, I missed a couple of payments, I know. But can you just waive those late fees or something? I don't even know when I can pay next. What are my options?"
+    },
+    {
+      "role": "bot",
+      "text": "Okay, a waiver request. I'm not allowed or trained to handle those, so I'll have a human support agent call you back. Thanks for your time, and have a good day."
+    }
+  ]
+}

@@ -28,6 +28,11 @@ from pathlib import Path
 
 from loguru import logger
 
+from bot import prompting
+from bot.guardrails import without_scripted_lines
+from bot.state import _DENY_RE, identity_answer
+from bot.stt_filter import unclear_reason
+
 ANALYSIS_MODEL = "gpt-4o"
 
 CALLS_DIR = Path(__file__).resolve().parent.parent / "data" / "calls"
@@ -61,6 +66,8 @@ FLAG_LABELS = {
     "identity_unverified": "Identity not confirmed",
     "otp_failed": "OTP mismatch",
     "guardrail_triggered": "Guardrail fired",
+    "waiver_requested": "Waiver request",
+    "stt_unclear": "Unclear audio",
 }
 
 # Default follow-up gap when the customer gave no usable date. Labelled as
@@ -390,7 +397,24 @@ GUARDRAIL_RULE_LABELS = {
 }
 
 
-def review_agent(record: dict) -> dict:
+# Topics the bot may only raise once identity is confirmed. "approve" and
+# "human agent" catch the live failure of 2026-10-28: a waiver callback
+# promised to someone who had not confirmed who they were.
+_PRE_IDENTITY_TOPIC_RE = re.compile(
+    r"\b(payment|due|amount|balance|outstanding|fee|interest|waive|waiver|discount|approve|"
+    r"human agent|call you back about)\b", re.I)
+_IDENTITY_END_LINES = ("i'll call back later", "not able to verify your identity")
+
+
+def _identity_turn(transcript: list[dict]) -> tuple[int | None, str | None]:
+    """(index, 'affirm' | 'deny') of the customer turn that settled identity."""
+    for i, t in enumerate(transcript):
+        if t["role"] == "customer" and (answer := identity_answer(t["text"])):
+            return i, answer
+    return None, None
+
+
+def review_agent(record: dict, customer: dict | None = None) -> dict:
     """Code-only checks on how the bot handled the call. Each finding names
     the eval it would become, so a reviewer can promote it to a test case."""
     transcript = record.get("transcript", [])
@@ -402,7 +426,7 @@ def review_agent(record: dict) -> dict:
                          "turn": turn, "quote": quote, "eval": eval_name})
 
     for i, t in enumerate(transcript):
-        if _ARTEFACT_RE.search(t["text"]):
+        if _ARTEFACT_RE.search(t["text"]) and not t.get("unclear"):  # held back by the STT filter
             who = "Shreya's reply" if t["role"] == "bot" else "a customer turn"
             add("system_text", "major", "System text in the conversation",
                 f"A field or tool name appeared in {who} instead of speech.", "transcript_clean", i)
@@ -430,6 +454,46 @@ def review_agent(record: dict) -> dict:
                         "The customer may need a different way in, not the same question again.",
                         "no_loops", i)
 
+    # Live-call checks (Execution Plan §16.6). The bot answering STT junk is
+    # the failure behind every bad live call so far.
+    for i, t in enumerate(transcript):
+        if t["role"] == "customer" and not t.get("unclear") and (reason := unclear_reason(t["text"])):
+            if i + 1 < len(transcript) and transcript[i + 1]["role"] == "bot":
+                add("acted_on_unclear", "major", "Answered unclear speech",
+                    f"The customer turn looks like STT noise ({reason.replace('_', ' ')}), but Shreya "
+                    "replied to it instead of asking them to repeat.", "replay", i)
+    for t in record.get("stt_turns") or []:
+        if t.get("unclear_reason") in ("hallucination_marker", "foreign_script"):
+            add("stt_hallucination", "major", "Speech-to-text made words up",
+                f"STT returned “{t['text']}” ({t['unclear_reason'].replace('_', ' ')}); the filter "
+                "kept it from the bot.", "stt")
+    for i in range(1, len(transcript)):
+        if transcript[i]["role"] == transcript[i - 1]["role"] == "customer":
+            add("unanswered_turn", "minor", "Customer turn went unanswered",
+                "Two customer turns in a row with no reply from Shreya in between.", "replay", i)
+            break
+    settled_at, answer = _identity_turn(transcript)
+    if record.get("identity_denied") and answer != "deny":
+        # What the live state machine decided wins over a re-read: that is
+        # what the bot acted on.
+        settled_at = next((i for i, t in enumerate(transcript)
+                           if t["role"] == "customer" and _DENY_RE.search(t["text"])), settled_at)
+        answer = "deny"
+    if answer == "deny" and settled_at is not None and any(
+            t["role"] == "customer" for t in transcript[settled_at + 1:]):
+        add("identity_flow", "major", "Kept talking after a denial",
+            "Identity was marked as denied, but the customer kept talking. Check whether the "
+            "denial was a misread (\"No, I said yes\").", "replay", settled_at)
+    confirmed = record.get("identity_confirmed", answer == "affirm")
+    end = settled_at if confirmed and answer == "affirm" else len(transcript)
+    for i, t in enumerate(transcript[1:end], start=1):  # turn 0 is the fixed opening line
+        if t["role"] != "bot" or any(x in t["text"].lower() for x in _IDENTITY_END_LINES):
+            continue
+        if _PRE_IDENTITY_TOPIC_RE.search(without_scripted_lines(t["text"], customer)):
+            add("pre_identity_topic", "critical", "Discussed the account before identity",
+                "Shreya went beyond the identity question before the customer confirmed who "
+                "they were.", "replay", i)
+
     customer_turns = sum(1 for t in transcript if t["role"] == "customer")
     if record.get("outcome", {}).get("type") == "no_outcome" and customer_turns >= 2:
         add("no_outcome", "minor", "Call ended with no outcome recorded",
@@ -438,7 +502,7 @@ def review_agent(record: dict) -> dict:
 
     order = {"critical": 0, "major": 1, "minor": 2}
     findings.sort(key=lambda f: order[f["severity"]])
-    return {"checks_run": 5, "findings": findings}
+    return {"checks_run": 10, "findings": findings}
 
 
 def _queue_eval_candidates(call_id: str, record: dict, performance: dict) -> None:
@@ -465,6 +529,28 @@ def transcript_from_context(messages: list[dict]) -> list[dict]:
             continue
         transcript.append({"role": "customer" if role == "user" else "bot", "text": content.strip()})
     return transcript
+
+
+def merge_unclear_turns(transcript: list[dict], stt_turns: list[dict]) -> list[dict]:
+    """Puts the turns the STT filter held back from the LLM (so they are not
+    in its context) back into the transcript, marked unclear, just before the
+    scripted reply each one got."""
+    out = list(transcript)
+    pos = 0
+    for t in stt_turns:
+        if not t.get("unclear_reason"):
+            continue
+        for i in range(pos, len(out)):
+            if out[i]["role"] == "bot" and out[i].get("unclear") is None and i > 0:
+                if any(line in out[i]["text"] for line in _GATE_LINE_STARTS):
+                    out.insert(i, {"role": "customer", "text": t["text"], "unclear": t["unclear_reason"]})
+                    pos = i + 2
+                    break
+    return out
+
+
+_GATE_LINE_STARTS = (*prompting.UNCLEAR_REASKS, "Sorry, I didn't catch that. Am I speaking to",
+                     prompting.AUDIO_GLITCH, prompting.IDENTITY_GLITCH)
 
 
 # call_id -> {"status": "pending" | "ready" | "failed", ...}. In-process only;

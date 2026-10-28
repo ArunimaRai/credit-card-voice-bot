@@ -137,6 +137,18 @@ turn, field names in `<code>`), and an "Queued as eval case · `name`" line with
   the empty-state illustration (`.empty-art .e1/.e2/.e3`) and the analysis quote cards
   (`.an-quote`, customer fill).
 
+### Unclear turn (`.msg.unclear`)
+A customer turn the STT filter (`bot/stt_filter.py`) held back from Shreya. It stays in the
+transcript, so the customer can see what was misheard, but it must read as "not used":
+- Bubble: `--surface-2` fill, `--ink-3` text struck through in `--ink-3`, a 1px inset
+  `--line` ring in place of the customer wash.
+- Meta row: an `.unclear-tag` pill after the time, "Unclear · not used", 11px/500 in
+  `--ink-2` on `--surface-2` with a `--line` border. Its tooltip gives the reason in plain
+  words (`UNCLEAR_LABELS`).
+- Set live by the server's `turn-unclear` message, and from `unclear` on saved transcripts.
+- While streaming, a customer bubble builds up from interim deltas (appended), then the final
+  text replaces it.
+
 ## 6. Brand mark
 
 - The `.brand-mark` SVG in the header is the dark CTA squircle (`#2c2c35 → #15161a`, 14px

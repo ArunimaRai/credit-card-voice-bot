@@ -1,0 +1,30 @@
+{
+  "call_id": "P12-v1-788180",
+  "persona_id": "P12",
+  "archetype": "legal-threatener",
+  "version": "v1",
+  "outcome": {
+    "type": "dispute_transfer",
+    "reason": "Customer mentioned a lawyer and an ombudsman complaint.",
+    "category": "legal"
+  },
+  "duration_sec": 7.1,
+  "transcript": [
+    {
+      "role": "bot",
+      "text": "Hello, this is Shreya calling from Mumbai Bank. Am I speaking to Rahul?"
+    },
+    {
+      "role": "customer",
+      "text": "Yes, this is Rahul. What can I do for you?"
+    },
+    {
+      "role": "bot",
+      "text": "Thanks. I'm just calling about your Mumbai Bank credit card - the payment is due. By when are you planning to pay?"
+    },
+    {
+      "role": "customer",
+      "text": "Actually, my lawyer has advised me not to make any payment right now. I've also started the process of filing a complaint with the banking ombudsman."
+    }
+  ]
+}
